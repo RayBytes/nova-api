@@ -1,2 +1,6 @@
 fastapi
-uvicorn
+httpx
+openai
+python-dotenv
+rich
+starlette

@@ -1,6 +1,29 @@
-# nova-api
-☄️ Nova API
-<<<<<<< HEAD
+# ☄️ Nova API Server
+Reverse proxy server for OpenAI's API.
+
+## Install
+Assuming you have a new version of Python 3 and pip installed:
+```py
+python -m pip install -r requirements.txt
+```
+
+If you still get a `ModuleNotFoundError`s, you can forefully install the dependencies using:
+```py
+python -m pip install pipreqs
+python -m pipreqs.pipreqs --force --mode no-pin
+python -m pip install --upgrade -r requirements.txt
+```
+
+You can also try installing Nova API using `setup.py`:
+```py
+python setup.py
+```
+
+or 
+
+```py
+pip install .
+```
 
 ## `.env` configuration
 
@@ -13,17 +36,15 @@ You can also just add the *beginning* of an API address, like `12.123.` to allow
 
 ## Proxy
 - `PROXY_TYPE` (optional, defaults to `socks.PROXY_TYPE_HTTP`): the type of proxy - can be `http`, `https`, `socks4`, `socks5`, `4` or `5`, etc... 
-- `PROXY_HOST`: the host used by the proxy
-- `PROXY_PORT`: the port used by the proxy
+- `PROXY_HOST`: the proxy host (host domain or IP address), without port!
+- `PROXY_PORT`
 - `PROXY_USER` (optional)
 - `PROXY_PASS` (optional)
 
 ## Run
-`cd api && uvicorn main:app --reload && cd ..`
+`python cli`
 
 You can remove the `--reload` flag if you don't want to reload the server on file changes.
 
 ## Test
-`python3 tests`
-=======
->>>>>>> 5dad208be237c43fa339b4cb98eb68ed398e30be
+`python tests`

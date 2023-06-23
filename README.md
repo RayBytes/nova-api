@@ -1,5 +1,6 @@
 # nova-api
 ☄️ Nova API
+<<<<<<< HEAD
 
 ## `.env` configuration
 
@@ -24,3 +25,5 @@ You can remove the `--reload` flag if you don't want to reload the server on fil
 
 ## Test
 `python3 tests`
+=======
+>>>>>>> 5dad208be237c43fa339b4cb98eb68ed398e30be

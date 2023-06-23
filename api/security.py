@@ -1,8 +1,8 @@
 import os
-import socks
 import socket
 import httpx
 
+from sockslib import socks
 from rich import print
 
 is_proxy_enabled = False
@@ -12,7 +12,7 @@ def enable_proxy():
 
     global is_proxy_enabled
 
-    if all([os.getenv('PROXY_PORT'), os.getenv('PROXY_IP'), os.getenv('PROXY_USER'), os.getenv('PROXY_PASS')]):
+    if all([os.getenv('PROXY_HOST'), os.getenv('PROXY_PORT')]):
         proxy_type = socks.PROXY_TYPE_HTTP
 
         if '4' in os.getenv('PROXY_TYPE'):
@@ -53,7 +53,7 @@ def ip_protection_check():
 .env file. Enable a VPN or proxy to continue.')
 
         if is_proxy_enabled:
-            print(f'[green]SUCCESS: The server IP {detected_ip} seems to be protected by a proxy.[/green]')
+            print(f'[green]SUCCESS: The IP {detected_ip} was detected, which seems to be a proxy. Great![/green]')
 
     else:
         print('[yellow]WARNING: ACTUAL_IPS is not set in the .env file or empty.\

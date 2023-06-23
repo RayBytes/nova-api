@@ -10,7 +10,6 @@ is_proxy_enabled = False
 def enable_proxy():
     """Enables the SOCKS5 proxy."""
 
-    # pylint: disable=C0103
     global is_proxy_enabled
 
     if all([os.getenv('PROXY_PORT'), os.getenv('PROXY_IP'), os.getenv('PROXY_USER'), os.getenv('PROXY_PASS')]):

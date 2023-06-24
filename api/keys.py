@@ -12,23 +12,25 @@ class Keys:
     # --- END OF CONFIG ---
 
     locked_keys = set()
-    cache = set()
+    cache = {}
 
     # Initialize MongoDB
     client = MongoClient(MONGO_URI)
     db = client.get_database('keys_db')
     collection = db['keys']
 
-    def __init__(self, key: str):
+    def __init__(self, key: str, model: str):
         self.key = key
+        self.model = model
         if not Keys.cache:
             self._load_keys()
 
     def _load_keys(self) -> None:
-        cursor = self.collection.find({}, {'_id': 0, 'key_value': 1})
+        cursor = Keys.collection.find({}, {'_id': 0, 'key_value': 1, 'model': 1})
         for doc in cursor:
             key_value = doc['key_value']
-            self.cache.add(key_value)
+            model = doc['model']
+            Keys.cache.setdefault(model, set()).add(key_value)
 
     def lock(self) -> None:
         self.locked_keys.add(self.key)
@@ -39,34 +41,35 @@ class Keys:
     def is_locked(self) -> bool:
         return self.key in self.locked_keys
 
-    def get() -> str:
-        key_candidates = list(Keys.cache)
+    @staticmethod
+    def get(model: str) -> str:
+        key_candidates = list(Keys.cache.get(model, set()))
         random.shuffle(key_candidates)
 
         for key_candidate in key_candidates:
-            key = Keys(key_candidate)
+            key = Keys(key_candidate, model)
 
             if not key.is_locked():
                 key.lock()
                 return key.key
 
-        print("[WARN] No unlocked keys found in get keys request!")
+        print(f"[WARN] No unlocked keys found for model '{model}' in get keys request!")
 
     def delete(self) -> None:
-        self.collection.delete_one({'key_value': self.key})
+        Keys.collection.delete_one({'key_value': self.key, 'model': self.model})
         # Update cache
         try:
-            Keys.cache.remove(self.key)
+            Keys.cache[self.model].remove(self.key)
         except KeyError:
-            print("[WARN] Tried to remove a key from cache which was not present: " + self.key)
+            print(f"[WARN] Tried to remove a key from cache which was not present: {self.key}")
 
     def save(self) -> None:
-        self.collection.insert_one({'key_value': self.key})
+        Keys.collection.insert_one({'key_value': self.key, 'model': self.model})
         # Update cache
-        Keys.cache.add(self.key)
+        Keys.cache.setdefault(self.model, set()).add(self.key)
 
 # Usage example:
 # os.environ['MONGO_URI'] = "mongodb://localhost:27017"
-# key_instance = Keys("example_key")
+# key_instance = Keys("example_key", "example_model")
 # key_instance.save()
-# key_value = Keys.get()
+# key_value = Keys.get("example_model")

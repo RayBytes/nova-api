@@ -1,39 +1,34 @@
 import json
 import os
 import random
-import sqlite3
+from pymongo import MongoClient
 
 with open('./config.json', 'r') as file:
     config = json.load(file)
 
 class Keys:
     # --- START OF CONFIG ---
-
-    DB_PATH = os.getenv('DB_PATH') or config.get('DB_PATH')
-
+    MONGO_URI = os.getenv('MONGO_URI') or config.get('MONGO_URI')
     # --- END OF CONFIG ---
 
     locked_keys = set()
     cache = set()
+
+    # Initialize MongoDB
+    client = MongoClient(MONGO_URI)
+    db = client.get_database('keys_db')
+    collection = db['keys']
 
     def __init__(self, key: str):
         self.key = key
         if not Keys.cache:
             self._load_keys()
 
-    def _connect(self):
-        conn = sqlite3.connect(self.DB_PATH)
-        return conn
-
     def _load_keys(self) -> None:
-        conn = self._connect()
-        cursor = conn.cursor()
-        cursor.execute("SELECT key_value FROM keys")
-        rows = cursor.fetchall()
-        for row in rows:
-            key_value = row[0]
+        cursor = self.collection.find({}, {'_id': 0, 'key_value': 1})
+        for doc in cursor:
+            key_value = doc['key_value']
             self.cache.add(key_value)
-        conn.commit()
 
     def lock(self) -> None:
         self.locked_keys.add(self.key)
@@ -56,13 +51,9 @@ class Keys:
                 return key.key
 
         print("[WARN] No unlocked keys found in get keys request!")
-    
-    def delete(self) -> None:
-        conn = self._connect()
-        cursor = conn.cursor()
 
-        cursor.execute("DELETE FROM keys WHERE key_value=?", (self.key,))
-        conn.commit()
+    def delete(self) -> None:
+        self.collection.delete_one({'key_value': self.key})
         # Update cache
         try:
             Keys.cache.remove(self.key)
@@ -70,17 +61,12 @@ class Keys:
             print("[WARN] Tried to remove a key from cache which was not present: " + self.key)
 
     def save(self) -> None:
-        conn = self._connect()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO keys (key_value) VALUES (?)", (self.key,))
-        conn.commit()
+        self.collection.insert_one({'key_value': self.key})
         # Update cache
         Keys.cache.add(self.key)
 
-
 # Usage example:
-# os.environ['DB_PATH'] = "keys.db"
-# key_instance = Keys("example_ky")
+# os.environ['MONGO_URI'] = "mongodb://localhost:27017"
+# key_instance = Keys("example_key")
 # key_instance.save()
 # key_value = Keys.get()
-

@@ -1,5 +1,5 @@
 # ☄️ Nova API Server
-Reverse proxy server for OpenAI's API.
+Reverse proxy server for "Closed"AI's API.
 
 ## Install
 Assuming you have a new version of Python 3 and pip installed:
@@ -28,7 +28,7 @@ pip install .
 ## `.env` configuration
 
 ### `ACTUAL_IPS` (optional)
-This is a security measure to make sure a proxy, VPN, Tor or any other IP hiding service is used by the host when accessing OpenAI's API.
+This is a security measure to make sure a proxy, VPN, Tor or any other IP hiding service is used by the host when accessing "Closed"AI's API.
 It is a space separated list of IP addresses that are allowed to access the API.
 You can also just add the *beginning* of an API address, like `12.123.` to allow all IPs starting with `12.123.`.
 

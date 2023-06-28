@@ -2,7 +2,7 @@
 
 from typing import List
 
-import openai
+import openai as closedai
 import httpx
 
 PORT = 8000
@@ -43,12 +43,12 @@ def test_api(model: str=MODEL, messages: List[dict]=None) -> dict:
     return response.json()['choices'][0]
 
 def test_library():
-    """Tests if the endpoint is working with the OpenAI library."""
+    """Tests if the endpoint is working with the "Closed"AI library."""
 
-    openai.api_base = ENDPOINT
-    openai.api_key = 'nv-LIBRARY-TEST'
+    closedai.api_base = ENDPOINT
+    closedai.api_key = 'nv-LIBRARY-TEST'
 
-    completion = openai.ChatCompletion.create(
+    completion = closedai.ChatCompletion.create(
         model=MODEL,
         messages=MESSAGES,
     )

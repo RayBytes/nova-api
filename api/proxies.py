@@ -40,6 +40,7 @@ class Proxy:
         """
         return self.proxy_type# + 'h' if self.proxy_type.startswith('socks') else self.proxy_type
 
+    @property
     def proxies(self):
         """Returns a dictionary of proxies, ready to be used with the requests library or httpx.
         """
@@ -52,6 +53,11 @@ class Proxy:
         }
 
         return proxies_dict
+
+    @property
+    def url(self):
+        """Returns the proxy URL."""
+        return f'{self.protocol}://{self.auth}{self.host}:{self.port}'
 
     def __str__(self):
         return f'{self.proxy_type}://{len(self.auth) * "*"}{self.host}:{self.port}'
@@ -83,7 +89,7 @@ def check_proxy():
     resp = httpx.get(
         url='https://echo.hoppscotch.io/',
         timeout=20,
-        proxies=active_proxy.proxies()
+        proxies=active_proxy.proxies
     )
     resp.raise_for_status()
 

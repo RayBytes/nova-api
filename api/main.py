@@ -26,8 +26,8 @@ app.add_middleware(
 async def startup_event():
     """Read up the API server."""
 
-    security.enable_proxy()
-    security.ip_protection_check()
+    # security.enable_proxy()
+    # security.ip_protection_check()
 
 @app.get('/')
 async def root():
@@ -39,13 +39,4 @@ async def root():
         'github': 'https://github.com/Luna-OSS'
     }
 
-async def _reverse_proxy(request: Request):
-    headers = {
-        name: value
-        for name, value in target_response.headers.items()
-        if name.lower() not in EXCLUDED_HEADERS
-    }
-
-    # ...
-
-app.add_route('/{path:path}', _reverse_proxy, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
+app.add_route('/{path:path}', transfer.transfer_streaming_response, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])

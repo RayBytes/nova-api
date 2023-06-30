@@ -35,12 +35,13 @@ def test_api(model: str=MODEL, messages: List[dict]=None) -> dict:
     json_data = {
         'model': model,
         'messages': messages or MESSAGES,
+        'stream': True,
     }
 
     response = httpx.post(f'{ENDPOINT}/chat/completions', headers=headers, json=json_data, timeout=20)
     response.raise_for_status()
 
-    return response.json()['choices'][0]
+    return response
 
 def test_library():
     """Tests if the endpoint is working with the "Closed"AI library."""

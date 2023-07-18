@@ -1,3 +1,5 @@
+"""Security checks for the API. Checks if the IP is masked etc."""
+
 import os
 import httpx
 
@@ -9,17 +11,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 is_proxy_enabled = False
-
-def enable_proxy():
-    """Enables the proxy."""
-
-    global is_proxy_enabled
-
-    proxies.activate_proxy()
-
-    print(f'[green]SUCCESS: Proxy enabled: {proxies.active_proxy}[/green]')
-
-    is_proxy_enabled = True
 
 class InsecureIPError(Exception):
     """Raised when the IP address of the server is not secure."""

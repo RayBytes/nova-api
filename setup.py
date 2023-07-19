@@ -1,13 +1,13 @@
 import setuptools
 
-with open('README.md', 'r') as fh:
+with open('README.md', 'r', encoding='utf8') as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name='nova-api',
     version='0.0.1',
-    author='Luna OSS',
-    author_email='nsde@dmc.chat',
+    author='NovaOSS Contributors',
+    author_email='owner@nova-oss.com',
     description='Nova API Server',
     long_description=long_description,
     long_description_content_type='text/markdown',

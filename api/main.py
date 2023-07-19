@@ -1,8 +1,8 @@
-import os
-import fastapi
+"""FastAPI setup."""
 
-from starlette.responses import StreamingResponse
-from starlette.requests import Request
+import fastapi
+import asyncio
+
 from fastapi.middleware.cors import CORSMiddleware
 
 from dotenv import load_dotenv
@@ -25,9 +25,7 @@ app.add_middleware(
 @app.on_event('startup')
 async def startup_event():
     """Read up the API server."""
-
-    # security.enable_proxy()
-    # security.ip_protection_check()
+    # await security.ip_protection_check()
 
 @app.get('/')
 async def root():
@@ -35,8 +33,15 @@ async def root():
 
     return {
         'status': 'ok',
-        'discord': 'https://discord.gg/85gdcd57Xr',
-        'github': 'https://github.com/Luna-OSS'
+        'readme': 'https://nova-oss.com'
+    }
+
+@app.route('/v1')
+async def api_root():
+    """Returns the API root endpoint."""
+
+    return {
+        'status': 'ok',
     }
 
 app.add_route('/{path:path}', transfer.transfer_streaming_response, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])

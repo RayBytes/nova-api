@@ -2,16 +2,13 @@
 
 import os
 import json
-import aiohttp
 import logging
 import starlette
-import netclient
 
-import proxies
+import netclient
+import request_manager
 
 from dotenv import load_dotenv
-
-from starlette.background import StreamingResponse
 
 load_dotenv()
 
@@ -24,19 +21,12 @@ logging.basicConfig(
 
 logging.info('API started')
 
-EXCLUDED_HEADERS = [
-    'content-encoding',
-    'content-length',
-    'transfer-encoding',
-    'connection'
-]
-
 async def handle_api_request(incoming_request, target_endpoint: str=''):
     """Transfer a streaming response from the incoming request to the target endpoint"""
     if not target_endpoint:
         target_endpoint = os.getenv('CLOSEDAI_ENDPOINT')
 
-    target_url = f'{target_endpoint}{incoming_request.url.path}'.replace('/v1/v1', '/v1')
+    target_url = f'{target_endpoint}{incoming_request.url.path}'
     logging.info('TRANSFER %s -> %s', incoming_request.url.path, target_url)
 
     if target_url.endswith('/v1'):
@@ -55,6 +45,12 @@ async def handle_api_request(incoming_request, target_endpoint: str=''):
     if 'temperature' in payload or 'functions' in payload:
         target_provider = 'closed'
 
-    return StreamingResponse(
-        content=netclient.receive_target_stream()
+    request = request_manager.Request(
+        url=target_url,
+        payload=payload,
+        method=incoming_request.method,
+    )
+
+    return starlette.responses.StreamingResponse(
+        content=netclient.stream_closedai_request(request)
     )

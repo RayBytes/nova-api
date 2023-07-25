@@ -21,11 +21,13 @@ class Proxy:
         password: str=None
     ):
         self.proxy_type = proxy_type
-        self.ip_address = socket.gethostbyname(host)
-        self.host = host
+        self.ip_address = host
+        self.host = socket.gethostbyname(host)
         self.port = port
         self.username = username
         self.password = password
+
+        self.url = f'socks5://{self.username}:{self.password}@{self.ip_address}:{self.port}'
 
     async def initialize_connector(self, connector):
         async with aiohttp.ClientSession(
@@ -61,12 +63,7 @@ class Proxy:
 
         await self.initialize_connector(connector)
 
-        # Logging to check the connector state
-        print("Connector: Is closed?", connector.closed)
-        print("Connector: Is connected?", connector._connected)
-
         return connector
-
 
 default_proxy = Proxy(
     proxy_type=os.getenv('PROXY_TYPE', 'http'),
@@ -75,3 +72,18 @@ default_proxy = Proxy(
     username=os.getenv('PROXY_USER'),
     password=os.getenv('PROXY_PASS')
 )
+
+if __name__ == '__main__':
+    import requests
+
+    print(default_proxy.url)
+
+    received_ip = requests.get(
+        'https://checkip.amazonaws.com',
+        timeout=5,
+        proxies={
+            'https': default_proxy.url
+        }
+    ).text.strip()
+
+    print(received_ip)

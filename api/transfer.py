@@ -2,17 +2,16 @@
 
 import os
 import json
-import logging
 import aiohttp
-import aiohttp_socks
+import logging
+import starlette
+import netclient
 
 import proxies
 
 from dotenv import load_dotenv
 
-import starlette
-from starlette.responses import StreamingResponse
-from starlette.background import BackgroundTask
+from starlette.background import StreamingResponse
 
 load_dotenv()
 
@@ -32,61 +31,30 @@ EXCLUDED_HEADERS = [
     'connection'
 ]
 
-proxy = proxies.active_proxy
-proxy_connector = aiohttp_socks.ProxyConnector(
-    proxy_type=aiohttp_socks.ProxyType.SOCKS5,
-    host=proxy.ip_address,
-    port=proxy.port,
-    rdns=False,
-    username=proxy.username,
-    password=proxy.password
-)
-
-async def transfer_streaming_response(incoming_request, target_endpoint: str='https://api.openai.com/v1'):
+async def handle_api_request(incoming_request, target_endpoint: str=''):
     """Transfer a streaming response from the incoming request to the target endpoint"""
+    if not target_endpoint:
+        target_endpoint = os.getenv('CLOSEDAI_ENDPOINT')
+
+    target_url = f'{target_endpoint}{incoming_request.url.path}'.replace('/v1/v1', '/v1')
+    logging.info('TRANSFER %s -> %s', incoming_request.url.path, target_url)
+
+    if target_url.endswith('/v1'):
+        return starlette.responses.Response(status_code=200, content='200. /v1 is the API endpoint root path.')
 
     if incoming_request.headers.get('Authorization') != f'Bearer {os.getenv("DEMO_AUTH")}':
-        return starlette.responses.Response(
-            status_code=403,
-            content='Invalid API key'
-        )
+        return starlette.responses.Response(status_code=403, content='Invalid API key')
 
     try:
-        incoming_json_payload = await incoming_request.json()
+        payload = await incoming_request.json()
     except json.decoder.JSONDecodeError:
-        incoming_json_payload = {}
+        payload = {}
 
-    async def receive_target_stream():
-        connector = aiohttp_socks.ProxyConnector(
-            proxy_type=aiohttp_socks.ProxyType.SOCKS5,
-            host=proxy.ip_address,
-            port=proxy.port,
-            rdns=False,
-            username=proxy.username,
-            password=proxy.password
-        )
-        async with aiohttp.ClientSession(
-            connector=connector,
-            timeout=aiohttp.ClientTimeout(total=int(os.getenv('TRANSFER_TIMEOUT', '120'))),
-            raise_for_status=True
-        ) as session:
-            target_url = f'{target_endpoint}{incoming_request.url.path}'.replace('/v1/v1', '/v1')
-            logging.info('TRANSFER %s -> %s', incoming_request.url.path, target_url)
+    target_provider = 'moe'
 
-            async with session.request(
-                method=incoming_request.method,
-                url=target_url,
-                json=incoming_json_payload,
-                headers={
-                    'Content-Type': 'application/json',
-                    'Authorization': f'Bearer {os.getenv("CLOSEDAI_KEY")}'
-                }
-            ) as response:
-                async for chunk in response.content.iter_any():
-                    chunk = f'{chunk.decode("utf8")}\n\n'
-                    logging.debug(chunk)
-                    yield chunk
+    if 'temperature' in payload or 'functions' in payload:
+        target_provider = 'closed'
 
     return StreamingResponse(
-        content=receive_target_stream()
+        content=netclient.receive_target_stream()
     )

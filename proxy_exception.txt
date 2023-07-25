@@ -1,0 +1,64 @@
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.10/site-packages/uvicorn/protocols/http/h11_impl.py", line 429, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "/usr/local/lib/python3.10/site-packages/uvicorn/middleware/proxy_headers.py", line 78, in __call__
+    return await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/fastapi/applications.py", line 284, in __call__
+    await super().__call__(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/starlette/applications.py", line 122, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/errors.py", line 184, in __call__
+    raise exc
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/errors.py", line 162, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/cors.py", line 83, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/exceptions.py", line 79, in __call__
+    raise exc
+  File "/usr/local/lib/python3.10/site-packages/starlette/middleware/exceptions.py", line 68, in __call__
+    await self.app(scope, receive, sender)
+  File "/usr/local/lib/python3.10/site-packages/fastapi/middleware/asyncexitstack.py", line 20, in __call__
+    raise e
+  File "/usr/local/lib/python3.10/site-packages/fastapi/middleware/asyncexitstack.py", line 17, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/starlette/routing.py", line 718, in __call__
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/starlette/routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/starlette/routing.py", line 69, in app
+    await response(scope, receive, send)
+  File "/usr/local/lib/python3.10/site-packages/starlette/responses.py", line 270, in __call__
+    async with anyio.create_task_group() as task_group:
+  File "/usr/local/lib/python3.10/site-packages/anyio/_backends/_asyncio.py", line 662, in __aexit__
+    raise exceptions[0]
+  File "/usr/local/lib/python3.10/site-packages/starlette/responses.py", line 273, in wrap
+    await func()
+  File "/usr/local/lib/python3.10/site-packages/starlette/responses.py", line 262, in stream_response
+    async for chunk in self.body_iterator:
+  File "/home/nova-api/api/transfer.py", line 62, in receive_target_stream
+    async with session.request(
+  File "/usr/local/lib/python3.10/site-packages/aiohttp/client.py", line 1138, in __aenter__
+    self._resp = await self._coro
+  File "/usr/local/lib/python3.10/site-packages/aiohttp/client.py", line 535, in _request
+    conn = await self._connector.connect(
+  File "/usr/local/lib/python3.10/site-packages/aiohttp/connector.py", line 542, in connect
+    proto = await self._create_connection(req, traces, timeout)
+  File "/usr/local/lib/python3.10/site-packages/aiohttp/connector.py", line 907, in _create_connection
+    _, proto = await self._create_direct_connection(req, traces, timeout)
+  File "/usr/local/lib/python3.10/site-packages/aiohttp/connector.py", line 1175, in _create_direct_connection
+    transp, proto = await self._wrap_create_connection(
+  File "/usr/local/lib/python3.10/site-packages/aiohttp_socks/connector.py", line 72, in _wrap_create_connection
+    stream = await proxy.connect(
+  File "/usr/local/lib/python3.10/site-packages/python_socks/async_/asyncio/v2/_proxy.py", line 59, in connect
+    return await self._connect(
+  File "/usr/local/lib/python3.10/site-packages/python_socks/async_/asyncio/v2/_proxy.py", line 100, in _connect
+    await self._negotiate(
+  File "/usr/local/lib/python3.10/site-packages/python_socks/async_/asyncio/v2/_proxy.py", line 164, in _negotiate
+    await proto.negotiate()
+  File "/usr/local/lib/python3.10/site-packages/python_socks/_proto/socks5_async.py", line 42, in negotiate
+    await self._socks_auth()
+  File "/usr/local/lib/python3.10/site-packages/python_socks/_proto/socks5_async.py", line 55, in _socks_auth
+    res.validate()
+  File "/usr/local/lib/python3.10/site-packages/python_socks/_proto/socks5.py", line 134, in validate
+    raise ProxyError('Username and password '  # pragma: no cover
+python_socks._errors.ProxyError: Username and password authentication failure

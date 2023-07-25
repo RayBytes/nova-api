@@ -7,7 +7,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from dotenv import load_dotenv
 
-import security
 import transfer
 
 load_dotenv()
@@ -25,7 +24,6 @@ app.add_middleware(
 @app.on_event('startup')
 async def startup_event():
     """Read up the API server."""
-    # await security.ip_protection_check()
 
 @app.get('/')
 async def root():
@@ -44,4 +42,4 @@ async def api_root():
         'status': 'ok',
     }
 
-app.add_route('/{path:path}', transfer.transfer_streaming_response, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
+app.add_route('/{path:path}', transfer.handle_api_request, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])

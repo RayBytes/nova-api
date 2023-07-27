@@ -83,7 +83,7 @@ if __name__ == '__main__':
         timeout=5,
         proxies={
             'https': default_proxy.url
-        }
+        }   
     ).text.strip()
 
     print(received_ip)

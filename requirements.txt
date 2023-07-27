@@ -1,9 +1,0 @@
-fastapi
-httpx[socks]
-openai
-python-dotenv
-rich
-starlette
-win_inet_pton
-aiohttp-socks
-aiohttp

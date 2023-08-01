@@ -21,7 +21,7 @@ MESSAGES = [
     },
 ]
 
-api_endpoint = 'http://localhost:2333'
+api_endpoint = 'http://localhost:2332'
 
 def test_server():
     """Tests if the API server is running."""

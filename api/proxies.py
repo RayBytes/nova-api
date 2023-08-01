@@ -81,16 +81,6 @@ default_proxy = Proxy(
     password=os.getenv('PROXY_PASS')
 )
 
-def test_requests():
-    import requests
-
-    # return requests.get(
-    #     'https://checkip.amazonaws.com',
-    #     timeout=5,
-    #     proxies=default_proxy.urls
-    # ).text.strip()
-
-
 def test_httpx():
     import httpx
 
@@ -102,5 +92,4 @@ def test_httpx():
     ).text.strip()
 
 if __name__ == '__main__':
-    print(test_requests())
     print(test_httpx())

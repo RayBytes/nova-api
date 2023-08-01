@@ -1,12 +1,13 @@
 """FastAPI setup."""
 
 import fastapi
-import asyncio
 
 from fastapi.middleware.cors import CORSMiddleware
 
 from dotenv import load_dotenv
 
+import core
+import users
 import transfer
 
 load_dotenv()
@@ -21,9 +22,11 @@ app.add_middleware(
     allow_headers=['*']
 )
 
+app.include_router(core.router)
+
 @app.on_event('startup')
 async def startup_event():
-    """Read up the API server."""
+    await users.prepare()
 
 @app.get('/')
 async def root():
@@ -31,15 +34,9 @@ async def root():
 
     return {
         'status': 'ok',
-        'readme': 'https://nova-oss.com'
+        'usage_docs': 'https://nova-oss.com',
+        'core_api_docs_for_developers': '/docs',
+        'github': 'https://github.com/novaoss/nova-api'
     }
 
-@app.route('/v1')
-async def api_root():
-    """Returns the API root endpoint."""
-
-    return {
-        'status': 'ok',
-    }
-
-app.add_route('/{path:path}', transfer.handle_api_request, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
+app.add_route('/v1/{path:path}', transfer.handle_api_request, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])

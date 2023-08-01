@@ -6,9 +6,9 @@ import logging
 import starlette
 
 import netclient
-import request_manager
 
 from dotenv import load_dotenv
+from helpers import requesting
 
 load_dotenv()
 
@@ -40,12 +40,10 @@ async def handle_api_request(incoming_request, target_endpoint: str=''):
     except json.decoder.JSONDecodeError:
         payload = {}
 
-    target_provider = 'moe'
-
     if 'temperature' in payload or 'functions' in payload:
         target_provider = 'closed'
 
-    request = request_manager.Request(
+    request = requesting.Request(
         url=target_url,
         payload=payload,
         method=incoming_request.method,

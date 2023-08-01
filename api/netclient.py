@@ -4,7 +4,7 @@ import httpx
 import proxies
 
 from dotenv import load_dotenv
-from request_manager import Request
+from helpers.requesting import Request
 
 load_dotenv()
 

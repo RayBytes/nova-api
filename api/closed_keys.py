@@ -1,33 +1,17 @@
+"""ClosedAI key manager."""
+
 import os
-import sys
 import uuid
 import time
 import asyncio
-import aiosqlite
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
-db_uri = os.getenv('DB_PATH')
-
-try:
-    os.remove(db_uri)
-except FileNotFoundError:
-    pass
-
-async def to_dict(cursor, row):
-    return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
-
-async def connect_db():
-    """Creates a connection to the database"""
-
-    return await aiosqlite.connect(db_uri)
+from rich import print
+from helpers import databases
 
 async def prepare() -> None:
     """Creates the database tables"""
 
-    keys_db = await connect_db()
+    keys_db = await databases.connect('closed_keys')
     await keys_db.execute(
         """
         CREATE TABLE IF NOT EXISTS closed_keys (
@@ -55,38 +39,29 @@ async def add_key(
 
     tags = tags or []
 
-    keys_db = await connect_db()
-
-    parameters = {
-        "id": str(uuid.uuid4()),
-        "key": key,
-        "source": source,
-        "created_at": int(time.time()),
-        "last_used": -1,
-        "uses_count": 0,
-        "tokens_generated": 0,
-        "active": True,
-        "working": True,
-        "tags": '/'.join(tags),
+    new_key = {
+        'id': str(uuid.uuid4()),
+        'key': key,
+        'source': source,
+        'created_at': int(time.time()),
+        'last_used': -1,
+        'uses_count': 0,
+        'tokens_generated': 0,
+        'active': True,
+        'working': True,
+        'tags': '/'.join(tags),
     }
 
-    sep = ', '
-    query = f"""
-        INSERT INTO closed_keys ({sep.join(parameters.keys())})
-        VALUES ({sep.join([f':{key}' for key in parameters.keys()])})
-    """
-
-    await keys_db.execute(query, parameters)
-    await keys_db.commit()
+    await databases.insert_dict(new_key, 'closed_keys', 'closed_keys')
 
 async def get_working_key() -> dict:
     """Returns a working key"""
 
-    keys_db = await connect_db()
+    keys_db = await databases.connect('closed_keys')
 
     async with keys_db.execute('SELECT * FROM closed_keys WHERE working = 1') as cursor:
         async for row in cursor:
-            return await to_dict(cursor, row)
+            return await databases.row_to_dict(row, cursor)
 
     return None
 
@@ -95,7 +70,7 @@ asyncio.run(prepare())
 async def key_stopped_working(key: str) -> None:
     """Marks a key as stopped working"""
 
-    keys_db = await connect_db()
+    keys_db = await databases.connect('closed_keys')
 
     await keys_db.execute(
         """
@@ -110,7 +85,7 @@ async def key_stopped_working(key: str) -> None:
 async def key_was_used(key: str, num_tokens: int) -> None:
     """Updates the stats of a key"""
 
-    keys_db = await connect_db()
+    keys_db = await databases.connect('closed_keys')
 
     # set last_used to int of time.time(), adds one to uses_count and adds num_tokens to tokens_generated
     await keys_db.execute(

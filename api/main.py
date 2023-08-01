@@ -39,4 +39,4 @@ async def root():
         'github': 'https://github.com/novaoss/nova-api'
     }
 
-app.add_route('/v1/{path:path}', transfer.handle_api_request, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
+app.add_route('/{path:path}', transfer.handle_api_request, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])

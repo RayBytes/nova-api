@@ -53,7 +53,7 @@ def test_api(model: str=MODEL, messages: List[dict]=None) -> dict:
     )
     response.raise_for_status()
 
-    return response
+    return response.text
 
 def test_library():
     """Tests if the api_endpoint is working with the Python library."""
@@ -77,5 +77,5 @@ def test_all():
     # print(test_library())
 
 if __name__ == '__main__':
-    api_endpoint = 'https://api.nova-oss.com'
+    # api_endpoint = 'https://api.nova-oss.com'
     test_all()

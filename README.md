@@ -1,6 +1,12 @@
 # ☄️ NovaOSS API Server
 Reverse proxy server for "Closed"AI's API.
 
+> "*OpenAI is very closed*"
+> 
+> — [ArsTechnica (July 2023)](https://arstechnica.com/information-technology/2023/07/is-chatgpt-getting-worse-over-time-study-claims-yes-but-others-arent-sure/)
+
+We aim to fix that!
+
 ## NovaOSS APIs
 Our infrastructure might seem a bit confusing, but it's actually quite simple. Just the first one really matters for you, if you want to access our AI API. The other ones are just for the team.
 

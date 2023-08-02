@@ -10,15 +10,21 @@ from dotenv import load_dotenv
 load_dotenv()
 
 MODEL = 'gpt-3.5-turbo'
+# MESSAGES = [
+#     {
+#         'role': 'system',
+#         'content': 'Always answer with "3", no matter what the user asks for. No exceptions. Just answer with the number "3". Nothing else. Just "3". No punctuation.'
+#     },
+#     {
+#         'role': 'user',
+#         'content': '1+1=',
+#     },
+# ]
 MESSAGES = [
-    {
-        'role': 'system',
-        'content': 'Always answer with "3", no matter what the user asks for. No exceptions. Just answer with the number "3". Nothing else. Just "3". No punctuation.'
-    },
     {
         'role': 'user',
         'content': '1+1=',
-    },
+    }
 ]
 
 api_endpoint = 'http://localhost:2332'
@@ -36,7 +42,7 @@ def test_api(model: str=MODEL, messages: List[dict]=None) -> dict:
 
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + os.getenv('DEMO_AUTH', 'nv-API-TEST'),
+        'Authorization': 'Bearer ' + api_key
     }
 
     json_data = {
@@ -59,23 +65,28 @@ def test_library():
     """Tests if the api_endpoint is working with the Python library."""
 
     closedai.api_base = api_endpoint
-    closedai.api_key = os.getenv('DEMO_AUTH', 'nv-LIB-TEST')
+    closedai.api_key = api_key
 
     completion = closedai.ChatCompletion.create(
         model=MODEL,
         messages=MESSAGES,
-        stream=True,
+        stream=True
     )
 
-    return completion.choices[0]
+    for event in completion:
+        try:
+            print(event['choices'][0]['delta']['content'])
+        except:
+            print('-')
 
 def test_all():
     """Runs all tests."""
 
     # print(test_server())
-    print(test_api())
-    # print(test_library())
+    # print(test_api())
+    print(test_library())
 
 if __name__ == '__main__':
-    # api_endpoint = 'https://api.nova-oss.com'
+    api_endpoint = 'https://api.nova-oss.com'
+    api_key = os.getenv('TEST_NOVA_KEY')
     test_all()

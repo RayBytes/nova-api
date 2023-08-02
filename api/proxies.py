@@ -86,10 +86,33 @@ def test_httpx():
 
     print(default_proxy.proxies)
 
+    with httpx.Client(
+        # proxies=default_proxy.proxies
+    ) as client:
+        return client.get('https://checkip.amazonaws.com').text.strip()
+
+def test_httpx_workaround():
+    import httpx
+
+    print(default_proxy.proxies)
+
+    # this workaround solves the RNDS issue, but fails for Cloudflare protected websites
     with httpx.Client(proxies=default_proxy.proxies, headers={'Host': 'checkip.amazonaws.com'}) as client:
         return client.get(
         f'http://{socket.gethostbyname("checkip.amazonaws.com")}/',
     ).text.strip()
 
+def test_requests():
+    import requests
+
+    print(default_proxy.proxies)
+
+    return requests.get(
+        timeout=5,
+        url='https://checkip.amazonaws.com/',
+        proxies=default_proxy.urls
+    ).text.strip()
+
 if __name__ == '__main__':
     print(test_httpx())
+    # print(test_requests())

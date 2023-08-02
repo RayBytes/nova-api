@@ -4,7 +4,7 @@ import os
 import json
 import fastapi
 
-import users
+from db import users
 
 from dotenv import load_dotenv
 
@@ -24,10 +24,11 @@ async def get_users(discord_id: int, incoming_request: fastapi.Request):
     if auth_error:
         return auth_error
 
-    user = await users.get_user(by_discord_id=discord_id)
+    user = await users.by_discord_id(discord_id)
 
     if not user:
         return fastapi.Response(status_code=404, content='User not found.')
+
     return user
 
 @router.post('/users')
@@ -42,7 +43,6 @@ async def create_user(incoming_request: fastapi.Request):
         discord_id = payload.get('discord_id')
     except (json.decoder.JSONDecodeError, AttributeError):
         return fastapi.Response(status_code=400, content='Invalid or no payload received.')
-
-    user = await users.add_user(discord_id=discord_id)
-
+    
+    user = await users.create(discord_id)
     return user

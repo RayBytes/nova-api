@@ -7,8 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 import core
-import users
 import transfer
+
+from db import users
 
 load_dotenv()
 
@@ -26,7 +27,9 @@ app.include_router(core.router)
 
 @app.on_event('startup')
 async def startup_event():
-    await users.prepare()
+    # DATABASE FIX https://stackoverflow.com/questions/65970988/python-mongodb-motor-objectid-object-is-not-iterable-error-while-trying-to-f
+    import pydantic, bson
+    pydantic.json.ENCODERS_BY_TYPE[bson.objectid.ObjectId]=str
 
 @app.get('/')
 async def root():
@@ -39,4 +42,4 @@ async def root():
         'github': 'https://github.com/novaoss/nova-api'
     }
 
-app.add_route('/{path:path}', transfer.handle_api_request, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
+app.add_route('/{path:path}', transfer.handle, ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])

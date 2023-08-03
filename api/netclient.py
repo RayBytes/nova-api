@@ -1,5 +1,7 @@
 import os
-import requests
+import aiohttp
+import asyncio
+import aiohttp_socks
 
 from dotenv import load_dotenv
 
@@ -9,7 +11,7 @@ from helpers import exceptions
 
 load_dotenv()
 
-async def stream(request: dict):
+async def stream(request: dict, demo_mode: bool=False):
     headers = {
         'Content-Type': 'application/json'
     }
@@ -18,27 +20,42 @@ async def stream(request: dict):
         headers[k] = v
 
     for _ in range(3):
-        response = requests.request(
-            method=request.get('method', 'POST'),
-            url=request['url'],
-            json=request.get('payload', {}),
-            headers=headers,
-            timeout=int(os.getenv('TRANSFER_TIMEOUT', '120')),
-            proxies=proxies.default_proxy.urls,
-            stream=True
-        )
+        async with aiohttp.ClientSession(connector=proxies.default_proxy.connector) as session:
+            async with session.get(
+                # 'GET',
+                'https://checkip.amazonaws.com/'
+            ) as response:
+                print(response.content)
+                print(type(response.content))
 
-        try:
-            response.raise_for_status()
-        except Exception as exc:
-            if str(exc) == '429 Client Error: Too Many Requests for url: https://api.openai.com/v1/chat/completions':
-                continue
-        else:
-            break
+                # html = await response.text()
+                # print(html)
 
-    for chunk in response.iter_lines():
-        chunk = f'{chunk.decode("utf8")}\n\n'
-        yield chunk
+                    # async with session.get(
+                        # method='GET',
+                        # url='https://checkip.amazonaws.com',
+                        # method=request.get('method', 'POST'),
+                        # url=request['url'],
+                        # json=request.get('payload', {}),
+                        # headers=headers,
+                        # timeout=aiohttp.ClientTimeout(total=float(os.getenv('TRANSFER_TIMEOUT', '120'))),
+                    # ) as response:
+                        # try:
+                            # await response.raise_for_status()
+                        # except Exception as exc:
+                            # if 'Too Many Requests' in str(exc):
+                                # continue
+                        # else:
+                            # break
+
+                async for chunk in response.content.iter_chunks():
+                    # chunk = f'{chunk.decode("utf8")}\n\n'
+                
+                    if demo_mode:
+                        print(chunk)
+
+                    yield chunk
 
 if __name__ == '__main__':
-    pass
+    asyncio.run(stream({'method': 'GET', 'url': 'https://checkip.amazonaws.com'}, True))
+

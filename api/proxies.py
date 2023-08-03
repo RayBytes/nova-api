@@ -52,7 +52,8 @@ class Proxy:
                 print(f'Detected IP: {detected_ip}')
                 return detected_ip.strip()
 
-    async def get_connector(self):
+    @property
+    def connector(self):
         proxy_types = {
             'http': aiohttp_socks.ProxyType.HTTP,
             'https': aiohttp_socks.ProxyType.HTTP,
@@ -60,7 +61,7 @@ class Proxy:
             'socks5': aiohttp_socks.ProxyType.SOCKS5
         }
 
-        connector = aiohttp_socks.ProxyConnector(
+        return aiohttp_socks.ProxyConnector(
             proxy_type=proxy_types[self.proxy_type],
             host=self.host,
             port=self.port,
@@ -69,10 +70,6 @@ class Proxy:
             password=self.password
         )
 
-        await self.initialize_connector(connector)
-
-        return connector
-
 default_proxy = Proxy(
     proxy_type=os.getenv('PROXY_TYPE', 'http'),
     host_or_ip=os.getenv('PROXY_HOST', '127.0.0.1'),
@@ -80,16 +77,6 @@ default_proxy = Proxy(
     username=os.getenv('PROXY_USER'),
     password=os.getenv('PROXY_PASS')
 )
-
-def test_httpx():
-    import httpx
-
-    print(default_proxy.proxies)
-
-    with httpx.Client(
-        # proxies=default_proxy.proxies
-    ) as client:
-        return client.get('https://checkip.amazonaws.com').text.strip()
 
 def test_httpx_workaround():
     import httpx
@@ -113,6 +100,13 @@ def test_requests():
         proxies=default_proxy.urls
     ).text.strip()
 
+async def test_aiohttp_socks():
+    async with aiohttp.ClientSession(connector=default_proxy.connector) as session:
+        async with session.get('https://checkip.amazonaws.com/') as response:
+            html = await response.text()
+            return html.strip()
+
 if __name__ == '__main__':
-    print(test_httpx())
+    # print(test_httpx())
     # print(test_requests())
+    print(asyncio.run(test_aiohttp_socks()))

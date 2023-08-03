@@ -89,4 +89,6 @@ async def handle(incoming_request):
 
     print(target_request['url'])
 
+    return errors.error(500, 'Sorry, the API is currenly under maintainance.', 'Please try again later.')
+
     return starlette.responses.StreamingResponse(netclient.stream(target_request))

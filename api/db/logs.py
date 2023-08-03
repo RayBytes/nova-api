@@ -1,6 +1,5 @@
 import os
-import bson
-import datetime
+import time
 
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -22,7 +21,7 @@ async def log_api_request(user, request, target_url):
         model = payload['model']
 
     new_log_item = {
-        'timestamp': bson.timestamp.Timestamp(datetime.datetime.now(), 0),
+        'timestamp': time.time(),
         'method': request.method,
         'path': request.url.path,
         'user_id': user['_id'],

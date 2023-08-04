@@ -2,6 +2,7 @@
 
 import os
 import socket
+import random
 import asyncio
 import aiohttp
 import aiohttp_socks
@@ -14,21 +15,34 @@ class Proxy:
     """Represents a proxy. The type can be either http, https, socks4 or socks5."""
 
     def __init__(self,
+        url: str=None,
         proxy_type: str='http',
         host_or_ip: str='127.0.0.1',
         port: int=8080,
         username: str=None,
         password: str=None
     ):
+        if url:
+            proxy_type = url.split('://')[0]
+            url = url.split('://')[1]
+
+            if '@' in url:
+                username = url.split('@')[1].split(':')[0]
+                password = url.split('@')[1].split(':')[1]
+
+            host_or_ip = url.split(':')[0]
+            port = url.split(':')[1]
+
         self.proxy_type = proxy_type
         self.host_or_ip = host_or_ip
-        self.ip_address = socket.gethostbyname(self.host_or_ip) if host_or_ip[0].isdigit() else host_or_ip
+        self.ip_address = socket.gethostbyname(self.host_or_ip) #if host_or_ip.replace('.', '').isdigit() else host_or_ip
         self.host = self.host_or_ip
         self.port = port
         self.username = username
         self.password = password
 
         self.url = f'{self.proxy_type}://{self.username}:{self.password}@{self.host}:{self.port}'
+        self.url_ip = f'{self.proxy_type}://{self.username}:{self.password}@{self.ip_address}:{self.port}'
         self.urls = {
             'http': self.url,
             'https': self.url
@@ -36,21 +50,6 @@ class Proxy:
 
         self.urls_httpx = {k + '://' :v for k, v in self.urls.items()}
         self.proxies = self.url
-
-    async def initialize_connector(self, connector):
-        async with aiohttp.ClientSession(
-            connector=connector,
-            timeout=aiohttp.ClientTimeout(total=10),
-            raise_for_status=True
-        ) as session:
-            async with session.request(
-                method='get',
-                url='https://checkip.amazonaws.com',
-                headers={'Content-Type': 'application/json'}
-            ) as response:
-                detected_ip = await response.text()
-                print(f'Detected IP: {detected_ip}')
-                return detected_ip.strip()
 
     @property
     def connector(self):
@@ -63,12 +62,32 @@ class Proxy:
 
         return aiohttp_socks.ProxyConnector(
             proxy_type=proxy_types[self.proxy_type],
-            host=self.host,
+            host=self.ip_address,
             port=self.port,
             rdns=False,
             username=self.username,
             password=self.password
         )
+
+proxies_in_files = []
+
+for proxy_type in ['http', 'socks4', 'socks5']:
+    with open(f'secret/proxies/{proxy_type}.txt') as f:
+        for line in f.readlines():
+            if line.strip() and not line.strip().startswith('#'):
+                if '#' in line:
+                    line = line.split('#')[0]
+
+                proxies_in_files.append(f'{proxy_type}://{line.strip()}')
+
+class ProxyChain:
+    def __init__(self):
+        random_proxy = random.choice(proxies_in_files)
+
+        self.get_random = Proxy(url=random_proxy)
+        self.connector = aiohttp_socks.ChainProxyConnector.from_urls(proxies_in_files)
+
+default_chain = ProxyChain()
 
 default_proxy = Proxy(
     proxy_type=os.getenv('PROXY_TYPE', 'http'),
@@ -77,6 +96,8 @@ default_proxy = Proxy(
     username=os.getenv('PROXY_USER'),
     password=os.getenv('PROXY_PASS')
 )
+
+random_proxy = ProxyChain().get_random
 
 def test_httpx_workaround():
     import httpx
@@ -106,7 +127,41 @@ async def test_aiohttp_socks():
             html = await response.text()
             return html.strip()
 
+async def streaming_aiohttp_socks():
+    async with aiohttp.ClientSession(connector=default_proxy.connector) as session:
+        async with session.post(
+                'https://free.churchless.tech/v1/chat/completions',
+                json={
+                    "model": "gpt-3.5-turbo",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "Hi"			
+                        }
+                    ],
+                    "stream": True
+                },
+                # headers={
+                #     'Authorization': 'Bearer MyDiscord'
+                # }
+            ) as response:
+            html = await response.text()
+            return html.strip()
+
+async def text_httpx_socks():
+    import httpx
+    from httpx_socks import AsyncProxyTransport
+
+    print(default_proxy.url_ip)
+
+    transport = AsyncProxyTransport.from_url(default_proxy.url_ip)
+    async with httpx.AsyncClient(transport=transport) as client:
+        res = await client.get('https://checkip.amazonaws.com')
+        return res.text
+
 if __name__ == '__main__':
     # print(test_httpx())
     # print(test_requests())
-    print(asyncio.run(test_aiohttp_socks()))
+    # print(asyncio.run(test_aiohttp_socks()))
+    # print(asyncio.run(streaming_aiohttp_socks()))
+    print(asyncio.run(text_httpx_socks()))

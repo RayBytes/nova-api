@@ -6,7 +6,7 @@ costs:
 
   chat-models:
     gpt-3: 10
-    gpt-4: 75
+    gpt-4: 30
     gpt-4-32k: 100
 
 # bonuses are multiplier for costs:
@@ -20,4 +20,4 @@ bonuses:
 # discord reward 0.99^lvl?
 
 rewards:
-  day: 1000
+  day: 250

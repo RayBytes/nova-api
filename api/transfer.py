@@ -22,8 +22,6 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)s %(name)s %(message)s'
 )
 
-logging.info('API started')
-
 with open('config/credits.yml', encoding='utf8') as f:
     credits_config = yaml.safe_load(f)
 

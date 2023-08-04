@@ -19,6 +19,7 @@ async def log_api_request(user: dict, incoming_request, target_url: str):
         last_prompt = payload['messages'][-1]['content']
 
     model = payload.get('model')
+    ip_address = await network.get_ip(incoming_request)
 
     new_log_item = {
         'timestamp': time.time(),
@@ -26,7 +27,7 @@ async def log_api_request(user: dict, incoming_request, target_url: str):
         'path': incoming_request.url.path,
         'user_id': user['_id'],
         'security': {
-            'ip': network.get_ip(incoming_request),
+            'ip': ip_address,
             'useragent': incoming_request.headers.get('User-Agent')
         },
         'details': {

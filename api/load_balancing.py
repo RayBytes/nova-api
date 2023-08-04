@@ -5,11 +5,17 @@ import chat_providers
 
 provider_modules = [
     chat_providers.twa,
-    chat_providers.quantum,
-    chat_providers.churchless,
-    chat_providers.closed,
-    chat_providers.closed4
+    # chat_providers.quantum,
+    # chat_providers.churchless,
+    # chat_providers.closed,
+    # chat_providers.closed4
 ]
+
+def _get_module_name(module) -> str:
+    name = module.__name__
+    if '.' in name:
+        return name.split('.')[-1]
+    return name
 
 async def balance_chat_request(payload: dict) -> dict:
     providers_available = []
@@ -24,7 +30,10 @@ async def balance_chat_request(payload: dict) -> dict:
         providers_available.append(provider_module)
 
     provider = random.choice(providers_available)
-    return provider.chat_completion(**payload)
+    target = provider.chat_completion(**payload)
+    target['module'] = _get_module_name(provider)
+
+    return target
 
 async def balance_organic_request(request: dict) -> dict:
     providers_available = []
@@ -34,8 +43,10 @@ async def balance_organic_request(request: dict) -> dict:
             providers_available.append(provider_module)
 
     provider = random.choice(providers_available)
+    target = provider.organify(request)
+    target['module'] = _get_module_name(provider)
 
-    return provider.organify(request)
+    return target
 
 if __name__ == '__main__':
     req = asyncio.run(balance_chat_request(payload={'model': 'gpt-3.5-turbo', 'stream': True}))

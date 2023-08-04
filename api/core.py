@@ -6,6 +6,7 @@ import fastapi
 
 from db import users
 
+from dhooks import Webhook, Embed
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -31,6 +32,20 @@ async def get_users(discord_id: int, incoming_request: fastapi.Request):
 
     return user
 
+def new_user_webhook(user: dict) -> None:    
+    dhook = Webhook(os.getenv('DISCORD_WEBHOOK__USER_CREATED'))
+
+    embed = Embed(
+        description='New User',
+        color=0x90ee90,
+     )
+
+    embed.add_field(name='ID', value=user['_id'], inline=False)
+    embed.add_field(name='Discord', value=user['auth']['discord'])
+    embed.add_field(name='Github', value=user['auth']['github'])
+
+    dhook.send(embed=embed)
+
 @router.post('/users')
 async def create_user(incoming_request: fastapi.Request):
     auth_error = await check_core_auth(incoming_request)
@@ -43,6 +58,17 @@ async def create_user(incoming_request: fastapi.Request):
         discord_id = payload.get('discord_id')
     except (json.decoder.JSONDecodeError, AttributeError):
         return fastapi.Response(status_code=400, content='Invalid or no payload received.')
-    
+
     user = await users.create(discord_id)
+    new_user_webhook(user)
+
     return user
+
+if __name__ == '__main__':
+    new_user_webhook({
+        '_id': 'JUST_A_TEST_IGNORE_ME',
+        'auth': {
+            'discord': 123,
+            'github': 'abc'
+        }
+    })

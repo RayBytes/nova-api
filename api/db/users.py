@@ -1,4 +1,5 @@
 import os
+import yaml
 import random
 import string
 import asyncio
@@ -8,11 +9,15 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 load_dotenv()
 
+with open('config/credits.yml', encoding='utf8') as f:
+    credits_config = yaml.safe_load(f)
+
 def _get_mongo(collection_name: str):
     return AsyncIOMotorClient(os.getenv('MONGO_URI'))['nova-core'][collection_name]
 
 async def create(discord_id: int=0) -> dict:
     """Adds a new user to the MongoDB collection."""
+
     chars = string.ascii_letters + string.digits
 
     infix = os.getenv('KEYGEN_INFIX')
@@ -23,7 +28,7 @@ async def create(discord_id: int=0) -> dict:
 
     new_user = {
         'api_key': new_api_key,
-        'credits': 1000,
+        'credits': credits_config['start-credits'],
         'role': '',
         'status': {
             'active': True,

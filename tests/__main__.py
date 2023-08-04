@@ -52,7 +52,7 @@ def test_api(model: str=MODEL, messages: List[dict]=None) -> dict:
     }
 
     response = httpx.post(
-        url=f'{api_endpoint}/chat/completions',
+        url=f'{api_endpoint}/v1/chat/completions',
         headers=headers,
         json=json_data,
         timeout=20
@@ -87,6 +87,7 @@ def test_all():
     print(test_library())
 
 if __name__ == '__main__':
-    api_endpoint = 'https://api.nova-oss.com'
+    # api_endpoint = 'https://api.nova-oss.com'
+    api_endpoint = 'http://localhost:2332'
     api_key = os.getenv('TEST_NOVA_KEY')
     test_all()

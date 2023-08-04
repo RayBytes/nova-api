@@ -77,21 +77,14 @@ Create a `.env` file, make sure not to reveal it to anyone, and fill in the requ
 - `PROXY_USER` (optional)
 - `PROXY_PASS` (optional)
 
-### ClosedAI configuration
-- `CLOSEDAI_KEY`: the API key used to access the ClosedAI API
-- `CLOSEDAI_ENDPOINT` (defaults to `https://api.openai.com/v1`): the API endpoint which is used for the provider ClosedAI
-
 ### `ACTUAL_IPS` (optional)
 This is a security measure to make sure a proxy, VPN, Tor or any other IP hiding service is used by the host when accessing "Closed"AI's API.
 It is a space separated list of IP addresses that are allowed to access the API.
 You can also just add the *beginning* of an API address, like `12.123.` (without an asterisk!) to allow all IPs starting with `12.123.`.
 > To disable the warning if you don't have this feature enabled, set `ACTUAL_IPS` to `None`.
 
-### `DEMO_AUTH`
-API key for demo purposes. You can give this to trusted team members. Never use it in production.
-
 ### `CORE_API_KEY`
-This will 
+This specifies the **very secret key** for accessing the entire user database etc.
 
 ## Run
 > **Warning:** read the according section for production usage!

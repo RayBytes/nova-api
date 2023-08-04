@@ -1,0 +1,23 @@
+max-credits: 100001
+start-credits: 1000
+
+costs:
+  other: 50
+
+  chat-models:
+    gpt-3: 10
+    gpt-4: 75
+    gpt-4-32k: 100
+
+# bonuses are multiplier for costs:
+# final_cost = cost * bonus
+bonuses:
+  owner: 0.1
+  admin: 0.3
+  helper: 0.4
+  booster: 0.5
+
+# discord reward 0.99^lvl?
+
+rewards:
+  day: 1000

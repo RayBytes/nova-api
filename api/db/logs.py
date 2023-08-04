@@ -4,30 +4,30 @@ import time
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 
+from helpers import network
+
 load_dotenv()
 
 def _get_mongo(collection_name: str):
     return AsyncIOMotorClient(os.getenv('MONGO_URI'))['nova-core'][collection_name]
 
-async def log_api_request(user, request, target_url):
-    payload = await request.json()
+async def log_api_request(user: dict, incoming_request, target_url: str):
+    payload = await incoming_request.json()
 
     last_prompt = None
     if 'messages' in payload:
         last_prompt = payload['messages'][-1]['content']
 
-    model = None
-    if 'model' in payload:
-        model = payload['model']
+    model = payload.get('model')
 
     new_log_item = {
         'timestamp': time.time(),
-        'method': request.method,
-        'path': request.url.path,
+        'method': incoming_request.method,
+        'path': incoming_request.url.path,
         'user_id': user['_id'],
         'security': {
-            'ip': request.client.host,
-            'useragent': request.headers.get('User-Agent')
+            'ip': network.get_ip(incoming_request),
+            'useragent': incoming_request.headers.get('User-Agent')
         },
         'details': {
             'model': model,

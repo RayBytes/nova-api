@@ -9,8 +9,6 @@ from dotenv import load_dotenv
 import core
 import transfer
 
-from db import users
-
 load_dotenv()
 
 app = fastapi.FastAPI()

@@ -87,7 +87,7 @@ async def handle(incoming_request):
 
     payload['user'] = str(user['_id'])
 
-    if not payload.get('stream') is True:
+    if 'chat/completions' in path and not payload.get('stream') is True:
         payload['stream'] = False
 
     return starlette.responses.StreamingResponse(
@@ -99,5 +99,5 @@ async def handle(incoming_request):
             input_tokens=input_tokens,
             incoming_request=incoming_request,
         ),
-        media_type='text/event-stream'
+        media_type='text/event-stream' if payload.get('stream', False) else 'application/json'
     )

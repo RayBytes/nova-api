@@ -1,7 +1,11 @@
+*.log.json
+/logs
+/log
+.log
+*.log.*
+
 providers/*
 providers/
-chat_providers/*
-chat_providers/
 
 secret/*
 secret/

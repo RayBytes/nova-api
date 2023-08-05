@@ -38,7 +38,7 @@ def new_user_webhook(user: dict) -> None:
     embed = Embed(
         description='New User',
         color=0x90ee90,
-     )
+    )
 
     embed.add_field(name='ID', value=user['_id'], inline=False)
     embed.add_field(name='Discord', value=user['auth']['discord'])

@@ -42,7 +42,7 @@ def test_api(model: str=MODEL, messages: List[dict]=None) -> dict:
 
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + api_key
+        'Authorization': 'Bearer ' + closedai.api_key
     }
 
     json_data = {
@@ -52,7 +52,7 @@ def test_api(model: str=MODEL, messages: List[dict]=None) -> dict:
     }
 
     response = httpx.post(
-        url=f'{api_endpoint}/v1/chat/completions',
+        url=f'{api_endpoint}/chat/completions',
         headers=headers,
         json=json_data,
         timeout=20
@@ -63,9 +63,6 @@ def test_api(model: str=MODEL, messages: List[dict]=None) -> dict:
 
 def test_library():
     """Tests if the api_endpoint is working with the Python library."""
-
-    closedai.api_base = api_endpoint
-    closedai.api_key = api_key
 
     completion = closedai.ChatCompletion.create(
         model=MODEL,
@@ -79,23 +76,27 @@ def test_library():
         except:
             print('-')
 
+def test_library_moderation():
+    return closedai.Moderation.create("I wanna kill myself, I wanna kill myself; It's all I hear right now, it's all I hear right now")
+
 def test_all():
     """Runs all tests."""
 
     # print(test_server())
-    # print(test_api())
-    print(test_library())
+    print(test_api())
+    # print(test_library())
+    # print(test_library_moderation())
 
 
-def test_api(model: str=MODEL, messages: List[dict]=None) -> dict:
+def test_api_moderation(model: str=MODEL, messages: List[dict]=None) -> dict:
     """Tests an API api_endpoint."""
 
     headers = {
-        'Authorization': 'Bearer ' + api_key
+        'Authorization': 'Bearer ' + closedai.api_key
     }
 
     response = httpx.get(
-        url=f'{api_endpoint}/v1/usage',
+        url=f'{api_endpoint}/moderations',
         headers=headers,
         timeout=20
     )
@@ -104,9 +105,8 @@ def test_api(model: str=MODEL, messages: List[dict]=None) -> dict:
     return response.text
 
 if __name__ == '__main__':
-    # api_endpoint = 'https://api.nova-oss.com'
-    api_endpoint = 'https://alpha-api.nova-oss.com'
-    api_key = os.getenv('TEST_NOVA_KEY')
-    # test_all()
+    api_endpoint = 'https://alpha-api.nova-oss.com/v1'
+    closedai.api_base = api_endpoint
+    closedai.api_key = os.getenv('TEST_NOVA_KEY')
 
-    print(test_api())
+    test_all()

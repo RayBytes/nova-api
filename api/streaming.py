@@ -1,6 +1,6 @@
 import os
-import yaml
 import json
+import dhooks
 import asyncio
 import aiohttp
 import starlette
@@ -13,7 +13,7 @@ import proxies
 import load_balancing
 
 from db import logs, users, stats
-from helpers import network, chat
+from helpers import network, chat, errors
 
 load_dotenv()
 
@@ -27,9 +27,6 @@ DEMO_PAYLOAD = {
     ]
 }
 
-with open('config/credits.yml', encoding='utf8') as f:
-    max_credits = yaml.safe_load(f)['max-credits']
-
 async def stream(
     path: str='/v1/chat/completions',
     user: dict=None,
@@ -42,11 +39,15 @@ async def stream(
 
     payload = payload or DEMO_PAYLOAD
     is_chat = False
+    is_stream = payload.get('stream', False)
 
     if 'chat/completions' in path:
         is_chat = True
-        chat_id = await chat.create_chat_id()
         model = payload['model']
+
+
+    if is_chat and is_stream:
+        chat_id = await chat.create_chat_id()
 
         yield chat.create_chat_chunk(
             chat_id=chat_id,
@@ -60,25 +61,38 @@ async def stream(
             content=None
         )
 
-    for _ in range(5):
+    for _ in range(3):
         headers = {
             'Content-Type': 'application/json'
         }
 
-        if is_chat:
-            target_request = await load_balancing.balance_chat_request(payload)
-        else:
-            target_request = await load_balancing.balance_organic_request({
-                'path': path,
-                'payload': payload,
-                'headers': headers
-            })
+        try:
+            if is_chat:
+                target_request = await load_balancing.balance_chat_request(payload)
+            else:
+                target_request = await load_balancing.balance_organic_request({
+                    'method': incoming_request.method,
+                    'path': path,
+                    'payload': payload,
+                    'headers': headers,
+                    'cookies': incoming_request.cookies
+                })
+        except ValueError as exc:
+            webhook = dhooks.Webhook(os.getenv('DISCORD_WEBHOOK__API_ISSUE'))
+
+            webhook.send(content=f'API Issue: **`{exc}`**\nhttps://i.imgflip.com/7uv122.jpg')
+            yield errors.yield_error(
+                500,
+                'Sorry, the API has no working keys anymore.',
+                'The admins have been messaged automatically.'
+            )
 
         for k, v in target_request.get('headers', {}).items():
             headers[k] = v
 
-        async with aiohttp.ClientSession(connector=proxies.default_proxy.connector) as session:
+        json.dump(target_request, open('api.log.json', 'w'), indent=4)
 
+        async with aiohttp.ClientSession(connector=proxies.default_proxy.connector) as session:
             try:
                 async with session.request(
                     method=target_request.get('method', 'POST'),
@@ -94,6 +108,7 @@ async def stream(
 
                     timeout=aiohttp.ClientTimeout(total=float(os.getenv('TRANSFER_TIMEOUT', '120'))),
                 ) as response:
+                    print(5)
 
                     try:
                         response.raise_for_status()
@@ -114,28 +129,44 @@ async def stream(
                             '$inc': {'credits': -credits_cost}
                         })
 
+                    print(6)
 
-                    try:
-                        async for chunk in response.content.iter_any():
-                            chunk = f'{chunk.decode("utf8")}\n\n'
+                    if is_stream:
+                        try:
+                            async for chunk in response.content.iter_any():
+                                send = False
+                                chunk = f'{chunk.decode("utf8")}\n\n'
+                                chunk = chunk.replace(os.getenv('MAGIC_WORD', 'novaOSScheckKeyword'), payload['model'])
+                                # chunk = chunk.replace(os.getenv('MAGIC_USER_WORD', 'novaOSSuserKeyword'), user['_id'])
 
-                            if chunk.strip():
-                                if is_chat:
-                                    if target_request['module'] == 'twa':
-                                        data = json.loads(chunk.split('data: ')[1])
+                                if not chunk.strip():
+                                    send = False
 
-                                        if data.get('text'):
-                                            chunk = chat.create_chat_chunk(
-                                                chat_id=chat_id,
-                                                model=model,
-                                                content=['text']
-                                            )
-                                yield chunk
+                                if is_chat and '{' in chunk:
+                                    data = json.loads(chunk.split('data: ')[1])
+                                    send = True
+                                    print(data)
 
-                    except Exception as exc:
-                        if 'Connection closed' in str(exc):
-                            print('connection closed')
-                            continue
+                                    if target_request['module'] == 'twa' and data.get('text'):
+                                        chunk = chat.create_chat_chunk(
+                                            chat_id=chat_id,
+                                            model=model,
+                                            content=['text']
+                                        )
+
+                                    if not data['choices'][0]['delta']:
+                                        send = False
+
+                                    if data['choices'][0]['delta'] == {'role': 'assistant'}:
+                                        send = False
+                                
+                                if send:
+                                    yield chunk
+
+                        except Exception as exc:
+                            if 'Connection closed' in str(exc):
+                                print('connection closed: ', exc)
+                                continue
 
                     if not demo_mode:
                         ip_address = await network.get_ip(incoming_request)
@@ -151,12 +182,13 @@ async def stream(
 
                     break
 
-            except ProxyError:
+            except ProxyError as exc:
                 print('proxy error')
                 continue
 
                 print(3)
-    if is_chat:
+
+    if is_chat and is_stream:
         chat_chunk = chat.create_chat_chunk(
             chat_id=chat_id,
             model=model,
@@ -165,6 +197,10 @@ async def stream(
         data = json.dumps(chat_chunk)
 
         yield 'data: [DONE]\n\n'
+
+    if not is_stream:
+        json_response = await response.json()
+        yield json_response.encode('utf8')
 
 if __name__ == '__main__':
     asyncio.run(stream())

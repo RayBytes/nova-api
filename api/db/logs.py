@@ -12,7 +12,13 @@ def _get_mongo(collection_name: str):
     return AsyncIOMotorClient(os.getenv('MONGO_URI'))['nova-core'][collection_name]
 
 async def log_api_request(user: dict, incoming_request, target_url: str):
-    payload = await incoming_request.json()
+    payload = {}
+
+    try:
+        payload = await incoming_request.json()
+    except Exception as exc:
+        if 'JSONDecodeError' in str(exc):
+            pass
 
     last_prompt = None
     if 'messages' in payload:

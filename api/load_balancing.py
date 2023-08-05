@@ -1,14 +1,14 @@
 import random
 import asyncio
 
-import chat_providers
+import providers
 
 provider_modules = [
-    # chat_providers.twa,
-    # chat_providers.quantum,
-    chat_providers.churchless,
-    chat_providers.closed,
-    chat_providers.closed4
+    # providers.twa,
+    # providers.quantum,
+    providers.churchless,
+    providers.closed,
+    providers.closed4
 ]
 
 def _get_module_name(module) -> str:

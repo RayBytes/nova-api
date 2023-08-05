@@ -86,8 +86,27 @@ def test_all():
     # print(test_api())
     print(test_library())
 
+
+def test_api(model: str=MODEL, messages: List[dict]=None) -> dict:
+    """Tests an API api_endpoint."""
+
+    headers = {
+        'Authorization': 'Bearer ' + api_key
+    }
+
+    response = httpx.get(
+        url=f'{api_endpoint}/v1/usage',
+        headers=headers,
+        timeout=20
+    )
+    response.raise_for_status()
+
+    return response.text
+
 if __name__ == '__main__':
     # api_endpoint = 'https://api.nova-oss.com'
-    api_endpoint = 'http://localhost:2332'
+    api_endpoint = 'https://alpha-api.nova-oss.com'
     api_key = os.getenv('TEST_NOVA_KEY')
-    test_all()
+    # test_all()
+
+    print(test_api())

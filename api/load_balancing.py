@@ -4,11 +4,11 @@ import asyncio
 import chat_providers
 
 provider_modules = [
-    chat_providers.twa,
+    # chat_providers.twa,
     # chat_providers.quantum,
-    # chat_providers.churchless,
-    # chat_providers.closed,
-    # chat_providers.closed4
+    chat_providers.churchless,
+    chat_providers.closed,
+    chat_providers.closed4
 ]
 
 def _get_module_name(module) -> str:
@@ -28,6 +28,9 @@ async def balance_chat_request(payload: dict) -> dict:
             continue
 
         providers_available.append(provider_module)
+
+    if not providers_available:
+        raise NotImplementedError('This model does not exist.')
 
     provider = random.choice(providers_available)
     target = provider.chat_completion(**payload)

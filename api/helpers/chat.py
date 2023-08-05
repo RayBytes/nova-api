@@ -1,3 +1,4 @@
+import json
 import string
 import random
 import asyncio
@@ -26,10 +27,13 @@ def create_chat_chunk(chat_id: str, model: str, content=None) -> dict:
             'content': content
         }
 
-    if not isinstance(content, str):
+    if content == CompletionStart:
         delta = {
             'role': 'assistant'
         }
+
+    if content == CompletionStop:
+        delta = {}
 
     chunk = {
         'id': chat_id,
@@ -40,13 +44,12 @@ def create_chat_chunk(chat_id: str, model: str, content=None) -> dict:
             {
                 'delta': delta,
                 'index': 0, 
-                'finish_reason': None if not(isinstance(content, str)) else 'stop'
+                'finish_reason': 'stop' if content == CompletionStop else None
             }
         ],
     }
-    print(chunk)
 
-    return chunk
+    return f'data: {json.dumps(chunk)}\n\n'
 
 if __name__ == '__main__':
     demo_chat_id = asyncio.run(create_chat_id())

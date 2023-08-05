@@ -7,6 +7,7 @@ import asyncio
 import aiohttp
 import aiohttp_socks
 
+from rich import print
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -71,14 +72,17 @@ class Proxy:
 
 proxies_in_files = []
 
-for proxy_type in ['http', 'socks4', 'socks5']:
-    with open(f'secret/proxies/{proxy_type}.txt') as f:
-        for line in f.readlines():
-            if line.strip() and not line.strip().startswith('#'):
-                if '#' in line:
-                    line = line.split('#')[0]
+try:
+    for proxy_type in ['http', 'socks4', 'socks5']:
+        with open(f'secret/proxies/{proxy_type}.txt') as f:
+            for line in f.readlines():
+                if line.strip() and not line.strip().startswith('#'):
+                    if '#' in line:
+                        line = line.split('#')[0]
 
-                proxies_in_files.append(f'{proxy_type}://{line.strip()}')
+                    proxies_in_files.append(f'{proxy_type}://{line.strip()}')
+except FileNotFoundError:
+    pass
 
 class ProxyChain:
     def __init__(self):
@@ -87,7 +91,11 @@ class ProxyChain:
         self.get_random = Proxy(url=random_proxy)
         self.connector = aiohttp_socks.ChainProxyConnector.from_urls(proxies_in_files)
 
-default_chain = ProxyChain()
+try:
+    default_chain = ProxyChain()
+    random_proxy = ProxyChain().get_random
+except IndexError:
+    pass
 
 default_proxy = Proxy(
     proxy_type=os.getenv('PROXY_TYPE', 'http'),
@@ -97,7 +105,6 @@ default_proxy = Proxy(
     password=os.getenv('PROXY_PASS')
 )
 
-random_proxy = ProxyChain().get_random
 
 def test_httpx_workaround():
     import httpx
@@ -129,24 +136,11 @@ async def test_aiohttp_socks():
 
 async def streaming_aiohttp_socks():
     async with aiohttp.ClientSession(connector=default_proxy.connector) as session:
-        async with session.post(
-                'https://free.churchless.tech/v1/chat/completions',
-                json={
-                    "model": "gpt-3.5-turbo",
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": "Hi"			
-                        }
-                    ],
-                    "stream": True
-                },
-                # headers={
-                #     'Authorization': 'Bearer MyDiscord'
-                # }
-            ) as response:
-            html = await response.text()
-            return html.strip()
+        async with session.get('https://httpbin.org/get', headers={
+            'Authorization': 'x'
+        }) as response:
+            json = await response.json()
+            return json
 
 async def text_httpx_socks():
     import httpx
@@ -163,5 +157,5 @@ if __name__ == '__main__':
     # print(test_httpx())
     # print(test_requests())
     # print(asyncio.run(test_aiohttp_socks()))
-    # print(asyncio.run(streaming_aiohttp_socks()))
-    print(asyncio.run(text_httpx_socks()))
+    print(asyncio.run(streaming_aiohttp_socks()))
+    # print(asyncio.run(text_httpx_socks()))

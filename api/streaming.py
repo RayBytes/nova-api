@@ -86,6 +86,7 @@ async def stream(
                 'Sorry, the API has no working keys anymore.',
                 'The admins have been messaged automatically.'
             )
+            return
 
         for k, v in target_request.get('headers', {}).items():
             headers[k] = v
@@ -138,6 +139,7 @@ async def stream(
                                 chunk = f'{chunk.decode("utf8")}\n\n'
                                 chunk = chunk.replace(os.getenv('MAGIC_WORD', 'novaOSScheckKeyword'), payload['model'])
                                 # chunk = chunk.replace(os.getenv('MAGIC_USER_WORD', 'novaOSSuserKeyword'), user['_id'])
+                                print(chunk)
 
                                 if not chunk.strip():
                                     send = False
@@ -145,7 +147,6 @@ async def stream(
                                 if is_chat and '{' in chunk:
                                     data = json.loads(chunk.split('data: ')[1])
                                     send = True
-                                    print(data)
 
                                     if target_request['module'] == 'twa' and data.get('text'):
                                         chunk = chat.create_chat_chunk(

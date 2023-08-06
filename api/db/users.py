@@ -30,6 +30,7 @@ async def create(discord_id: int=0) -> dict:
         'api_key': new_api_key,
         'credits': credits_config['start-credits'],
         'role': '',
+        'level': 0,
         'status': {
             'active': True,
             'ban_reason': '',
@@ -40,9 +41,9 @@ async def create(discord_id: int=0) -> dict:
         }
     }
 
-    await _get_mongo('users').insert_one(new_user)
-
-    user = await _get_mongo('users').find_one({'api_key': new_api_key})	
+    db = await _get_mongo('users')
+    await db.insert_one(new_user)
+    user = await db.find_one({'api_key': new_api_key})	
     return user
 
 async def by_id(user_id: str):

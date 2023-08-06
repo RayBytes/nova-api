@@ -1,17 +1,17 @@
-import asyncio
-import autocredits
-import aiohttp
 import os
+import asyncio
+import aiohttp
 import pymongo
 
-from settings import roles
+import autocredits
 
 from dotenv import load_dotenv
 
+from settings import roles
+
 load_dotenv()
 
-CONNECTION_STRING = os.getenv("CONNECTION_STRING")
-pymongo_client = pymongo.MongoClient(CONNECTION_STRING)
+pymongo_client = pymongo.MongoClient(os.getenv('MONGO_URI'))
 
 async def main():
     users = await autocredits.get_all_users(pymongo_client)
@@ -22,13 +22,13 @@ async def main():
 async def update_roles(users):
     async with aiohttp.ClientSession() as session:
         try:
-            async with session.get('http://localhost:50000/get_roles') as response:
-                data = await response.json()
+            async with session.get('http://localhost:3224/get_roles') as response:
+                discord_users = await response.json()
         except aiohttp.ClientError as e:
-            raise ValueError('Could not get roles') from exc
+            raise ValueError('Could not get roles.') from exc
 
     lvlroles = [f'lvl{lvl}' for lvl in range(10, 110, 10)] + ['']
-    discord_users = data
+
     users = await autocredits.get_all_users(pymongo_client)
 
     filtered_users = users.find({'role': {'$in': lvlroles}})
@@ -40,8 +40,14 @@ async def update_roles(users):
         for id_, roles in discord_users.items():
             if id_ == discord:
                 for role in lvlroles:
+                    print(2, id_)
                     if role in roles:
-                        bulk_updates.append(pymongo.UpdateOne({'auth.discord': int(discord)}, {'$set': {'role': role}}))
+                        print(0, id_)
+                        bulk_updates.append(pymongo.UpdateOne(
+                            {'auth.discord': int(discord)},
+                            {'$set': {'role': role}})
+                        )
+                        print(1, id_)
                         print(f'Updated {id_} to {role}')
                         break
 

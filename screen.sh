@@ -1,1 +1,1 @@
-screen -s nova-api python run prod
+screen -S nova-api python run prod

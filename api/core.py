@@ -41,8 +41,8 @@ async def new_user_webhook(user: dict) -> None:
     )
 
     embed.add_field(name='ID', value=str(user['_id']), inline=False)
-    embed.add_field(name='Discord', value=user['auth']['discord'])
-    embed.add_field(name='Github', value=user['auth']['github'])
+    embed.add_field(name='Discord', value=user['auth']['discord'] or '-')
+    embed.add_field(name='Github', value=user['auth']['github'] or '-')
 
     dhook.send(embed=embed)
 

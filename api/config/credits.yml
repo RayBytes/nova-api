@@ -17,7 +17,3 @@ bonuses:
   admin: 0.3
   helper: 0.4
   booster: 0.5
-
-
-rewards:
-  day: 250 # scales with level. More in ../../credit_management/settings.py

@@ -98,8 +98,6 @@ async def handle(incoming_request):
         error = await errors.error(400, 'The request contains content which violates this model\'s policies.', 'We currently don\'t support any NSFW models.')
         return error
 
-    return
-
     role_cost_multiplier = credits_config['bonuses'].get(user['role'], 1)
     cost = round(cost * role_cost_multiplier)
 

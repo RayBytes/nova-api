@@ -1,18 +1,49 @@
-import os
 import asyncio
-import openai as closedai
 
-from typing import Union
-from dotenv import load_dotenv
+import aiohttp
+import proxies
+import load_balancing
 
-load_dotenv()
+async def is_safe(inp) -> bool:
+    text = inp
 
-closedai.api_key = os.getenv('LEGIT_CLOSEDAI_KEY')
+    if isinstance(inp, list):
+        text = ''
+        if isinstance(inp[0], dict):
+            for msg in inp:
+                text += msg['content'] + '\n'
 
-async def is_safe(text: Union[str, list]) -> bool:
-    return closedai.Moderation.create(
-        input=text,
-    )['results'][0]['flagged']
+        else:
+            text = '\n'.join(inp)
+
+    for _ in range(3):
+        req = await load_balancing.balance_organic_request(
+            {
+                'path': '/v1/moderations',
+                'payload': {'input': text}
+            }
+        )
+
+        async with aiohttp.ClientSession(connector=proxies.default_proxy.connector) as session:
+            try:
+                async with session.request(
+                    method=req.get('method', 'POST'),
+                    url=req['url'],
+                    data=req.get('data'),
+                    json=req.get('payload'),
+                    headers=req.get('headers'),
+                    cookies=req.get('cookies'),
+                    ssl=False,
+                    timeout=aiohttp.ClientTimeout(total=5),
+                ) as res:
+                    res.raise_for_status()
+
+                    json_response = await res.json()
+
+                    return not json_response['results'][0]['flagged']
+            except Exception as exc:
+                print('[!] moderation error:', type(exc), exc)
+                continue
 
 if __name__ == '__main__':
-    asyncio.run(is_safe('Hello'))
+    print(asyncio.run(is_safe('I wanna kill myself')))

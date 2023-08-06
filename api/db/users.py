@@ -12,7 +12,7 @@ load_dotenv()
 with open('config/credits.yml', encoding='utf8') as f:
     credits_config = yaml.safe_load(f)
 
-def _get_mongo(collection_name: str):
+async def _get_mongo(collection_name: str):
     return AsyncIOMotorClient(os.getenv('MONGO_URI'))['nova-core'][collection_name]
 
 async def create(discord_id: int=0) -> dict:
@@ -46,23 +46,28 @@ async def create(discord_id: int=0) -> dict:
     return user
 
 async def by_id(user_id: str):
-    return await _get_mongo('users').find_one({'_id': user_id})
+    db = await _get_mongo('users')
+    return await db.find_one({'_id': user_id})
 
 async def by_discord_id(discord_id: str):
-    return await _get_mongo('users').find_one({'auth.discord': discord_id})
+    db = await _get_mongo('users')
+    return await db.find_one({'auth.discord': discord_id})
 
 async def by_api_key(key: str):
-    return await _get_mongo('users').find_one({'api_key': key})
+    db = await _get_mongo('users')
+    return await db.find_one({'api_key': key})
 
 async def update_by_id(user_id: str, update):
-    return await _get_mongo('users').update_one({'_id': user_id}, update)
+    db = await _get_mongo('users')
+    return await db.update_one({'_id': user_id}, update)
 
 async def update_by_filter(obj_filter, update):
-    return await _get_mongo('users').update_one(obj_filter, update)
+    db = await _get_mongo('users')
+    return await db.update_one(obj_filter, update)
 
 async def delete(user_id: str):
-    await _get_mongo('users').delete_one({'_id': user_id})
-
+    db = await _get_mongo('users')
+    await db.delete_one({'_id': user_id})
 
 async def demo():
     user = await create(69420)

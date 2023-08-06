@@ -1,10 +1,12 @@
 import asyncio
-from settings import roles
 import autocredits
 import aiohttp
-from dotenv import load_dotenv
 import os
 import pymongo
+
+from settings import roles
+
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -23,10 +25,9 @@ async def update_roles(users):
             async with session.get('http://localhost:50000/get_roles') as response:
                 data = await response.json()
         except aiohttp.ClientError as e:
-            print(f"Error: {e}")
-            return
-    
-    lvlroles = [f"lvl{lvl}" for lvl in range(10, 110, 10)] + ['']
+            raise ValueError('Could not get roles') from exc
+
+    lvlroles = [f'lvl{lvl}' for lvl in range(10, 110, 10)] + ['']
     discord_users = data
     users = await autocredits.get_all_users(pymongo_client)
 
@@ -41,8 +42,9 @@ async def update_roles(users):
                 for role in lvlroles:
                     if role in roles:
                         bulk_updates.append(pymongo.UpdateOne({'auth.discord': int(discord)}, {'$set': {'role': role}}))
-                        print(f"Updated {id_} to {role}")
+                        print(f'Updated {id_} to {role}')
                         break
+
     if bulk_updates:
         with pymongo_client:
             users.bulk_write(bulk_updates)

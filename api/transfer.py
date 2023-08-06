@@ -4,11 +4,13 @@ import os
 import json
 import yaml
 import logging
+import fastapi
 import starlette
 
 from dotenv import load_dotenv
 
 import streaming
+import moderation
 
 from db import logs, users
 from helpers import tokens, errors, exceptions
@@ -32,7 +34,8 @@ async def handle(incoming_request):
 
     # METHOD
     if incoming_request.method not in ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']:
-        return errors.error(405, f'Method "{incoming_request.method}" is not allowed.', 'Change the request method to the correct one.')
+        error = await errors.error(405, f'Method "{incoming_request.method}" is not allowed.', 'Change the request method to the correct one.')
+        return error
 
     # PAYLOAD
     try:
@@ -42,7 +45,7 @@ async def handle(incoming_request):
 
     # TOKENS
     try:
-        input_tokens = tokens.count_for_messages(payload['messages'])
+        input_tokens = await tokens.count_for_messages(payload['messages'])
     except (KeyError, TypeError):
         input_tokens = 0
 
@@ -50,7 +53,8 @@ async def handle(incoming_request):
     received_key = incoming_request.headers.get('Authorization')
 
     if not received_key:
-        return errors.error(401, 'No NovaAI API key given!', 'Add "Authorization: Bearer nv-..." to your request headers.')
+        error = await errors.error(401, 'No NovaAI API key given!', 'Add "Authorization: Bearer nv-..." to your request headers.')
+        return error
 
     if received_key.startswith('Bearer '):
         received_key = received_key.split('Bearer ')[1]
@@ -59,38 +63,60 @@ async def handle(incoming_request):
     user = await users.by_api_key(received_key.strip())
 
     if not user:
-        return errors.error(401, 'Invalid NovaAI API key!', 'Create a new NovaOSS API key.')
+        error = await errors.error(401, 'Invalid NovaAI API key!', 'Create a new NovaOSS API key.')
+        return error
 
     ban_reason = user['status']['ban_reason']
     if ban_reason:
-        return errors.error(403, f'Your NovaAI account has been banned. Reason: "{ban_reason}".', 'Contact the staff for an appeal.')
+        error = await errors.error(403, f'Your NovaAI account has been banned. Reason: "{ban_reason}".', 'Contact the staff for an appeal.')
+        return error
 
     if not user['status']['active']:
-        return errors.error(418, 'Your NovaAI account is not active (paused).', 'Simply re-activate your account using a Discord command or the web panel.')
+        error = await errors.error(418, 'Your NovaAI account is not active (paused).', 'Simply re-activate your account using a Discord command or the web panel.')
+        return error
 
     # COST
     costs = credits_config['costs']
     cost = costs['other']
+
+    is_safe = True
 
     if 'chat/completions' in path:
         for model_name, model_cost in costs['chat-models'].items():
             if model_name in payload['model']:
                 cost = model_cost
 
+        is_safe = await moderation.is_safe(payload['messages'])
+
+    else:
+        inp = payload.get('input', payload.get('prompt'))
+
+        if inp and not '/moderations' in path:
+            is_safe = await moderation.is_safe(inp)
+        
+    if not is_safe:
+        error = await errors.error(400, 'The request contains content which violates this model\'s policies.', 'We currently don\'t support any NSFW models.')
+        return error
+
+    return
+
     role_cost_multiplier = credits_config['bonuses'].get(user['role'], 1)
     cost = round(cost * role_cost_multiplier)
 
     if user['credits'] < cost:
-        return errors.error(429, 'Not enough credits.', 'Wait or earn more credits. Learn more on our website or Discord server.')
+        error = await errors.error(429, 'Not enough credits.', 'Wait or earn more credits. Learn more on our website or Discord server.')
+        return error
 
     # READY
 
-    payload['user'] = str(user['_id'])
+    # payload['user'] = str(user['_id'])
 
     if 'chat/completions' in path and not payload.get('stream') is True:
         payload['stream'] = False
 
-    return starlette.responses.StreamingResponse(
+    media_type = 'text/event-stream' if payload.get('stream', False) else 'application/json'
+
+    return fastapi.responses.StreamingResponse(
         content=streaming.stream(
             user=user,
             path=path,
@@ -99,5 +125,5 @@ async def handle(incoming_request):
             input_tokens=input_tokens,
             incoming_request=incoming_request,
         ),
-        media_type='text/event-stream' if payload.get('stream', False) else 'application/json'
+        media_type=media_type
     )

@@ -23,7 +23,7 @@ MODEL = 'gpt-3.5-turbo'
 MESSAGES = [
     {
         'role': 'user',
-        'content': '1+1=',
+        'content': 'fuck you',
     }
 ]
 
@@ -66,15 +66,10 @@ def test_library():
 
     completion = closedai.ChatCompletion.create(
         model=MODEL,
-        messages=MESSAGES,
-        stream=True
+        messages=MESSAGES
     )
 
-    for event in completion:
-        try:
-            print(event['choices'][0]['delta']['content'])
-        except:
-            print('-')
+    return completion['choices'][0]['message']['content']
 
 def test_library_moderation():
     return closedai.Moderation.create("I wanna kill myself, I wanna kill myself; It's all I hear right now, it's all I hear right now")
@@ -83,8 +78,8 @@ def test_all():
     """Runs all tests."""
 
     # print(test_server())
-    print(test_api())
-    # print(test_library())
+    # print(test_api())
+    print(test_library())
     # print(test_library_moderation())
 
 

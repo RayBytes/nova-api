@@ -17,7 +17,7 @@ async def create_chat_id() -> str:
 
     return f'chatcmpl-{chat_id}'
 
-def create_chat_chunk(chat_id: str, model: str, content=None) -> dict:
+async def create_chat_chunk(chat_id: str, model: str, content=None) -> dict:
     content = content or {}
 
     delta = {}

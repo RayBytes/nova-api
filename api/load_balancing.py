@@ -11,13 +11,15 @@ provider_modules = [
     providers.closed4
 ]
 
-def _get_module_name(module) -> str:
+async def _get_module_name(module) -> str:
     name = module.__name__
     if '.' in name:
         return name.split('.')[-1]
     return name
 
 async def balance_chat_request(payload: dict) -> dict:
+    """Load balance the chat completion request between chat providers."""
+
     providers_available = []
 
     for provider_module in provider_modules:
@@ -34,20 +36,37 @@ async def balance_chat_request(payload: dict) -> dict:
 
     provider = random.choice(providers_available)
     target = provider.chat_completion(**payload)
-    target['module'] = _get_module_name(provider)
+    
+    module_name = await _get_module_name(provider)
+    target['module'] = module_name
 
     return target
 
 async def balance_organic_request(request: dict) -> dict:
+    """Load balnace to non-chat completion request between other "organic" providers which respond in the desired format already."""
+
     providers_available = []
 
+    if not request.get('headers'):
+        request['headers'] = {
+            'Content-Type': 'application/json'
+        }
+
     for provider_module in provider_modules:
-        if provider_module.ORGANIC:
-            providers_available.append(provider_module)
+        if not provider_module.ORGANIC:
+            continue
+
+        if '/moderations' in request['path']:
+            if not provider_module.MODERATIONS:
+                continue
+
+        providers_available.append(provider_module)
 
     provider = random.choice(providers_available)
     target = provider.organify(request)
-    target['module'] = _get_module_name(provider)
+
+    module_name = await _get_module_name(provider)
+    target['module'] = module_name
 
     return target
 

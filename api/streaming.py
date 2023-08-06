@@ -49,19 +49,26 @@ async def stream(
     if is_chat and is_stream:
         chat_id = await chat.create_chat_id()
 
-        yield chat.create_chat_chunk(
+        chunk = await chat.create_chat_chunk(
             chat_id=chat_id,
             model=model,
             content=chat.CompletionStart
         )
+        yield chunk
 
-        yield chat.create_chat_chunk(
+        chunk = await chat.create_chat_chunk(
             chat_id=chat_id,
             model=model,
             content=None
         )
 
-    for _ in range(3):
+        yield chunk
+
+    json_response = {
+        'error': 'No JSON response could be received'
+    }
+
+    for _ in range(5):
         headers = {
             'Content-Type': 'application/json'
         }
@@ -81,17 +88,16 @@ async def stream(
             webhook = dhooks.Webhook(os.getenv('DISCORD_WEBHOOK__API_ISSUE'))
 
             webhook.send(content=f'API Issue: **`{exc}`**\nhttps://i.imgflip.com/7uv122.jpg')
-            yield errors.yield_error(
+            error = errors.yield_error(
                 500,
                 'Sorry, the API has no working keys anymore.',
                 'The admins have been messaged automatically.'
             )
+            yield error 
             return
 
         for k, v in target_request.get('headers', {}).items():
             headers[k] = v
-
-        json.dump(target_request, open('api.log.json', 'w'), indent=4)
 
         async with aiohttp.ClientSession(connector=proxies.default_proxy.connector) as session:
             try:
@@ -109,28 +115,15 @@ async def stream(
 
                     timeout=aiohttp.ClientTimeout(total=float(os.getenv('TRANSFER_TIMEOUT', '120'))),
                 ) as response:
-                    print(5)
+
+                    if not is_stream:
+                        json_response = await response.json()
 
                     try:
                         response.raise_for_status()
                     except Exception as exc:
                         if 'Too Many Requests' in str(exc):
-                            print(429)
                             continue
-
-                    if user and incoming_request:
-                        await logs.log_api_request(
-                            user=user,
-                            incoming_request=incoming_request,
-                            target_url=target_request['url']
-                        )
-
-                    if credits_cost and user:
-                        await users.update_by_id(user['_id'], {
-                            '$inc': {'credits': -credits_cost}
-                        })
-
-                    print(6)
 
                     if is_stream:
                         try:
@@ -138,23 +131,22 @@ async def stream(
                                 send = False
                                 chunk = f'{chunk.decode("utf8")}\n\n'
                                 chunk = chunk.replace(os.getenv('MAGIC_WORD', 'novaOSScheckKeyword'), payload['model'])
-                                # chunk = chunk.replace(os.getenv('MAGIC_USER_WORD', 'novaOSSuserKeyword'), user['_id'])
-                                print(chunk)
+                                chunk = chunk.replace(os.getenv('MAGIC_USER_WORD', 'novaOSSuserKeyword'), str(user['_id']))
 
                                 if not chunk.strip():
                                     send = False
 
                                 if is_chat and '{' in chunk:
                                     data = json.loads(chunk.split('data: ')[1])
+                                    chunk = chunk.replace(data['id'], chat_id)
                                     send = True
 
                                     if target_request['module'] == 'twa' and data.get('text'):
-                                        chunk = chat.create_chat_chunk(
+                                        chunk = await chat.create_chat_chunk(
                                             chat_id=chat_id,
                                             model=model,
                                             content=['text']
                                         )
-
                                     if not data['choices'][0]['delta']:
                                         send = False
 
@@ -162,24 +154,18 @@ async def stream(
                                         send = False
                                 
                                 if send:
-                                    yield chunk
+                                    final_chunk = chunk.strip().replace('data: [DONE]', '') + '\n\n'
+                                    yield final_chunk
 
                         except Exception as exc:
                             if 'Connection closed' in str(exc):
-                                print('connection closed: ', exc)
-                                continue
-
-                    if not demo_mode:
-                        ip_address = await network.get_ip(incoming_request)
-
-                        await stats.add_date()
-                        await stats.add_ip_address(ip_address)
-                        await stats.add_path(path)
-                        await stats.add_target(target_request['url'])
-
-                        if is_chat:
-                            await stats.add_model(model)
-                            await stats.add_tokens(input_tokens, model)
+                                error = errors.yield_error(
+                                    500,
+                                    'Sorry, there was an issue with the connection.',
+                                    'Please first check if the issue on your end. If this error repeats, please don\'t heistate to contact the staff!.'
+                                )
+                                yield error 
+                                return
 
                     break
 
@@ -187,21 +173,43 @@ async def stream(
                 print('proxy error')
                 continue
 
-                print(3)
-
     if is_chat and is_stream:
-        chat_chunk = chat.create_chat_chunk(
+        chunk = await chat.create_chat_chunk(
             chat_id=chat_id,
             model=model,
             content=chat.CompletionStop
         )
-        data = json.dumps(chat_chunk)
+        yield chunk
 
         yield 'data: [DONE]\n\n'
 
     if not is_stream:
-        json_response = await response.json()
-        yield json_response.encode('utf8')
+        yield json.dumps(json_response)
+
+    # DONE =========================================================
+
+    if user and incoming_request:
+        await logs.log_api_request(
+            user=user,
+            incoming_request=incoming_request,
+            target_url=target_request['url']
+        )
+
+    if credits_cost and user:
+        await users.update_by_id(user['_id'], {
+            '$inc': {'credits': -credits_cost}
+        })
+
+    ip_address = await network.get_ip(incoming_request)
+
+    await stats.add_date()
+    await stats.add_ip_address(ip_address)
+    await stats.add_path(path)
+    await stats.add_target(target_request['url'])
+
+    if is_chat:
+        await stats.add_model(model)
+        await stats.add_tokens(input_tokens, model)
 
 if __name__ == '__main__':
     asyncio.run(stream())

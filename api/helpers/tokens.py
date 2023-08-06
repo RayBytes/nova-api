@@ -1,6 +1,6 @@
 import tiktoken
 
-def count_for_messages(messages: list, model: str='gpt-3.5-turbo-0613') -> int:
+async def count_for_messages(messages: list, model: str='gpt-3.5-turbo-0613') -> int:
     """Return the number of tokens used by a list of messages."""
 
     try:

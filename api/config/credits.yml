@@ -18,7 +18,6 @@ bonuses:
   helper: 0.4
   booster: 0.5
 
-# discord reward 0.99^lvl?
 
 rewards:
-  day: 250
+  day: 250 # scales with level. More in ../../credit_management/settings.py

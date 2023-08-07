@@ -69,24 +69,27 @@ async def handle(incoming_request):
     costs = credits_config['costs']
     cost = costs['other']
 
-    is_safe = True
+    policy_violation = False
 
     if 'chat/completions' in path:
         for model_name, model_cost in costs['chat-models'].items():
             if model_name in payload['model']:
                 cost = model_cost
 
-        is_safe = await moderation.is_safe(payload['messages'])
+        policy_violation = await moderation.is_policy_violated(payload['messages'])
+
+    elif '/moderations' in path:
+        pass
 
     else:
         inp = payload.get('input', payload.get('prompt'))
 
         if inp:
             if len(inp) > 2 and not inp.isnumeric():
-                is_safe = await moderation.is_safe(inp)
+                policy_violation = await moderation.is_policy_violated(inp)
 
-    if not is_safe and not '/moderations' in path:
-        error = await errors.error(400, 'The request contains content which violates this model\'s policies.', 'We currently don\'t support any NSFW models.')
+    if policy_violation:
+        error = await errors.error(400, f'The request contains content which violates this model\'s policies for "{policy_violation}".', 'We currently don\'t support any NSFW models.')
         return error
 
     role_cost_multiplier = credits_config['bonuses'].get(user['role'], 1)

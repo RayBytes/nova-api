@@ -24,7 +24,7 @@ async def balance_chat_request(payload: dict) -> dict:
         providers_available.append(provider_module)
 
     if not providers_available:
-        raise NotImplementedError('This model does not exist.')
+        raise NotImplementedError(f'The model "{payload["model"]}" is not available. MODEl_UNAVAILABLE')
 
     provider = random.choice(providers_available)
     target = provider.chat_completion(**payload)

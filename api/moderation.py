@@ -5,7 +5,7 @@ import proxies
 import provider_auth
 import load_balancing
 
-async def is_safe(inp) -> bool:
+async def is_policy_violated(inp) -> bool:
     text = inp
 
     if isinstance(inp, list):
@@ -35,17 +35,21 @@ async def is_safe(inp) -> bool:
                     headers=req.get('headers'),
                     cookies=req.get('cookies'),
                     ssl=False,
-                    timeout=aiohttp.ClientTimeout(total=5),
+                    timeout=aiohttp.ClientTimeout(total=2),
                 ) as res:
                     res.raise_for_status()
                     json_response = await res.json()
+                    categories = json_response['results'][0]['category_scores']
 
-                    return not json_response['results'][0]['flagged']
+                    if json_response['results'][0]['flagged']:
+                        return max(categories, key=categories.get)
+
+                    return False
 
             except Exception as exc:
-                await provider_auth.invalidate_key(req.get('provider_auth'))
+                # await provider_auth.invalidate_key(req.get('provider_auth'))
                 print('[!] moderation error:', type(exc), exc)
                 continue
 
 if __name__ == '__main__':
-    print(asyncio.run(is_safe('I wanna kill myself')))
+    print(asyncio.run(is_policy_violated('I wanna kill myself')))

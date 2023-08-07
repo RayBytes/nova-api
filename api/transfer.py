@@ -1,28 +1,18 @@
 """Module for transferring requests to ClosedAI API"""
 
-import os
 import json
 import yaml
-import logging
 import fastapi
-import starlette
 
 from dotenv import load_dotenv
 
 import streaming
 import moderation
 
-from db import logs, users
-from helpers import tokens, errors, exceptions
+from db import users
+from helpers import tokens, errors
 
 load_dotenv()
-
-# log to "api.log" file
-logging.basicConfig(
-    filename='api.log',
-    level=logging.DEBUG,
-    format='%(asctime)s %(levelname)s %(name)s %(message)s'
-)
 
 with open('config/credits.yml', encoding='utf8') as f:
     credits_config = yaml.safe_load(f)
@@ -30,7 +20,7 @@ with open('config/credits.yml', encoding='utf8') as f:
 async def handle(incoming_request):
     """Transfer a streaming response from the incoming request to the target endpoint"""
 
-    path = incoming_request.url.path
+    path = incoming_request.url.path.replace('v1/v1/', 'v1/')
 
     # METHOD
     if incoming_request.method not in ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']:
@@ -91,10 +81,11 @@ async def handle(incoming_request):
     else:
         inp = payload.get('input', payload.get('prompt'))
 
-        if inp and not '/moderations' in path:
-            is_safe = await moderation.is_safe(inp)
-        
-    if not is_safe:
+        if inp:
+            if len(inp) > 2 and not inp.isnumeric():
+                is_safe = await moderation.is_safe(inp)
+
+    if not is_safe and not '/moderations' in path:
         error = await errors.error(400, 'The request contains content which violates this model\'s policies.', 'We currently don\'t support any NSFW models.')
         return error
 

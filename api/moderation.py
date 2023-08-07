@@ -1,7 +1,8 @@
 import asyncio
-
 import aiohttp
+
 import proxies
+import provider_auth
 import load_balancing
 
 async def is_safe(inp) -> bool:
@@ -37,11 +38,12 @@ async def is_safe(inp) -> bool:
                     timeout=aiohttp.ClientTimeout(total=5),
                 ) as res:
                     res.raise_for_status()
-
                     json_response = await res.json()
 
                     return not json_response['results'][0]['flagged']
+
             except Exception as exc:
+                await provider_auth.invalidate_key(req.get('provider_auth'))
                 print('[!] moderation error:', type(exc), exc)
                 continue
 

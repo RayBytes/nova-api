@@ -3,14 +3,6 @@ import asyncio
 
 import providers
 
-provider_modules = [
-    # providers.twa,
-    # providers.quantum,
-    providers.churchless,
-    providers.closed,
-    providers.closed4
-]
-
 async def _get_module_name(module) -> str:
     name = module.__name__
     if '.' in name:
@@ -22,7 +14,7 @@ async def balance_chat_request(payload: dict) -> dict:
 
     providers_available = []
 
-    for provider_module in provider_modules:
+    for provider_module in providers.MODULES:
         if payload['stream'] and not provider_module.STREAMING:
             continue
 
@@ -52,7 +44,7 @@ async def balance_organic_request(request: dict) -> dict:
             'Content-Type': 'application/json'
         }
 
-    for provider_module in provider_modules:
+    for provider_module in providers.MODULES:
         if not provider_module.ORGANIC:
             continue
 

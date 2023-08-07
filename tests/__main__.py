@@ -23,7 +23,7 @@ MODEL = 'gpt-3.5-turbo'
 MESSAGES = [
     {
         'role': 'user',
-        'content': 'fuck you',
+        'content': '1+1=',
     }
 ]
 

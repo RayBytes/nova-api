@@ -1,59 +1,48 @@
-import os
 import asyncio
-import aiohttp
-import pymongo
-
-import autocredits
-
-from dotenv import load_dotenv
-
 from settings import roles
+import autocredits
+import aiohttp
+from dotenv import load_dotenv
+import os
+import pymongo
 
 load_dotenv()
 
-pymongo_client = pymongo.MongoClient(os.getenv('MONGO_URI'))
+CONNECTION_STRING = os.getenv("MONGO_URI")
+
 
 async def main():
-    users = await autocredits.get_all_users(pymongo_client)
+    pymongo_client = pymongo.MongoClient(CONNECTION_STRING)
 
-    await update_roles(users)
-    await autocredits.update_credits(users, roles)
+    await update_roles(pymongo_client)
+    await autocredits.update_credits(pymongo_client, roles)
 
-async def update_roles(users):
+
+async def update_roles(pymongo_client):
     async with aiohttp.ClientSession() as session:
         try:
-            async with session.get('http://localhost:3224/get_roles') as response:
-                discord_users = await response.json()
+            async with session.get('http://0.0.0.0:3224/get_roles') as response:
+                data = await response.json()
         except aiohttp.ClientError as e:
-            raise ValueError('Could not get roles.') from exc
+            print(f"Error: {e}")
+            return
 
-    lvlroles = [f'lvl{lvl}' for lvl in range(10, 110, 10)] + ['']
-
+    lvlroles = [f"lvl{lvl}" for lvl in range(10, 110, 10)]
+    discord_users = data
     users = await autocredits.get_all_users(pymongo_client)
 
-    filtered_users = users.find({'role': {'$in': lvlroles}})
-    
-    bulk_updates = []
-    for user in filtered_users:
+    for user in users.find():
         discord = str(user['auth']['discord'])
 
         for id_, roles in discord_users.items():
             if id_ == discord:
                 for role in lvlroles:
-                    print(2, id_)
                     if role in roles:
-                        print(0, id_)
-                        bulk_updates.append(pymongo.UpdateOne(
-                            {'auth.discord': int(discord)},
-                            {'$set': {'role': role}})
-                        )
-                        print(1, id_)
-                        print(f'Updated {id_} to {role}')
-                        break
+                        users.update_one({'auth.discord': int(discord)}, {
+                                         '$set': {'level': role}})
+                        print(f"Updated {discord} to {role}")
 
-    if bulk_updates:
-        with pymongo_client:
-            users.bulk_write(bulk_updates)
+    return users
 
 if __name__ == "__main__":
     asyncio.run(main())

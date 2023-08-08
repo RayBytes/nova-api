@@ -3,7 +3,7 @@ max-credits-owner: 694201337
 start-credits: 1000
 
 costs:
-  other: 50
+  other: 10
 
   chat-models:
     gpt-3: 10

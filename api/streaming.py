@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from python_socks._errors import ProxyError
 
 import proxies
+import provider_auth
 import load_balancing
 
 from db import logs, users, stats
@@ -36,15 +37,12 @@ async def stream(
     input_tokens: int=0,
     incoming_request: starlette.requests.Request=None,
 ):
-
-    payload = payload or DEMO_PAYLOAD
     is_chat = False
     is_stream = payload.get('stream', False)
 
     if 'chat/completions' in path:
         is_chat = True
         model = payload['model']
-
 
     if is_chat and is_stream:
         chat_id = await chat.create_chat_id()
@@ -97,7 +95,10 @@ async def stream(
             return
 
         for k, v in target_request.get('headers', {}).items():
-            headers[k] = v
+            target_request['headers'][k] = v
+
+        if target_request['method'] == 'GET' and not payload:
+            target_request['payload'] = None
 
         async with aiohttp.ClientSession(connector=proxies.default_proxy.connector) as session:
             try:
@@ -108,24 +109,30 @@ async def stream(
                     data=target_request.get('data'),
                     json=target_request.get('payload'),
 
-                    headers=headers,
+                    headers=target_request.get('headers', {}),
                     cookies=target_request.get('cookies'),
 
                     ssl=False,
 
                     timeout=aiohttp.ClientTimeout(total=float(os.getenv('TRANSFER_TIMEOUT', '120'))),
                 ) as response:
+                    if response.content_type == 'application/json':
+                        data = await response.json()
 
-                    if not is_stream:
-                        json_response = await response.json()
-
-                    try:
-                        response.raise_for_status()
-                    except Exception as exc:
-                        if 'Too Many Requests' in str(exc):
+                        if data.get('code') == 'invalid_api_key':
+                            await provider_auth.invalidate_key(target_request.get('provider_auth'))
                             continue
 
+                        if response.ok:
+                            json_response = data
+
                     if is_stream:
+                        try:
+                            response.raise_for_status()
+                        except Exception as exc:
+                            if 'Too Many Requests' in str(exc):
+                                continue
+
                         try:
                             async for chunk in response.content.iter_any():
                                 send = False
@@ -180,10 +187,9 @@ async def stream(
             content=chat.CompletionStop
         )
         yield chunk
-
         yield 'data: [DONE]\n\n'
 
-    if not is_stream:
+    if not is_stream and json_response:
         yield json.dumps(json_response)
 
     # DONE =========================================================

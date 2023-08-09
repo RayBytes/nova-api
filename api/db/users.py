@@ -15,7 +15,7 @@ with open('config/credits.yml', encoding='utf8') as f:
 async def _get_mongo(collection_name: str):
     return AsyncIOMotorClient(os.getenv('MONGO_URI'))['nova-core'][collection_name]
 
-async def create(discord_id: int=0) -> dict:
+async def create(discord_id: str='') -> dict:
     """Adds a new user to the MongoDB collection."""
 
     chars = string.ascii_letters + string.digits
@@ -36,7 +36,7 @@ async def create(discord_id: int=0) -> dict:
             'ban_reason': '',
         },
         'auth': {
-            'discord': discord_id,
+            'discord': str(discord_id),
             'github': None
         }
     }

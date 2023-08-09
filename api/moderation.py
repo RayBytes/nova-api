@@ -47,7 +47,8 @@ async def is_policy_violated(inp) -> bool:
                     return False
 
             except Exception as exc:
-                # await provider_auth.invalidate_key(req.get('provider_auth'))
+                if '401' in str(exc):
+                    await provider_auth.invalidate_key(req.get('provider_auth'))
                 print('[!] moderation error:', type(exc), exc)
                 continue
 

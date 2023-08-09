@@ -101,8 +101,6 @@ async def handle(incoming_request):
 
     # READY
 
-    # payload['user'] = str(user['_id'])
-
     if 'chat/completions' in path and not payload.get('stream') is True:
         payload['stream'] = False
 

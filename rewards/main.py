@@ -35,7 +35,7 @@ async def update_roles(mongo):
                 for role in level_role_names:
                     if role in role_names:
                         users.update_one(
-                            {'auth.discord': int(discord)},
+                            {'auth.discord': discord},
                             {'$set': {'level': role}}
                         )
                         print(f'Updated {discord} to {role}')

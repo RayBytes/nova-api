@@ -52,7 +52,7 @@ async def by_id(user_id: str):
 
 async def by_discord_id(discord_id: str):
     db = await _get_mongo('users')
-    return await db.find_one({'auth.discord': discord_id})
+    return await db.find_one({'auth.discord': str(int(discord_id))})
 
 async def by_api_key(key: str):
     db = await _get_mongo('users')

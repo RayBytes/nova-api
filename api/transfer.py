@@ -14,6 +14,8 @@ from helpers import tokens, errors
 
 load_dotenv()
 
+models_list = json.load(open('models.json'))
+
 with open('config/credits.yml', encoding='utf8') as f:
     credits_config = yaml.safe_load(f)
 
@@ -64,6 +66,9 @@ async def handle(incoming_request):
     if not user['status']['active']:
         error = await errors.error(418, 'Your NovaAI account is not active (paused).', 'Simply re-activate your account using a Discord command or the web panel.')
         return error
+
+    if '/models' in path:
+        return fastapi.responses.JSONResponse(content=models_list)
 
     # COST
     costs = credits_config['costs']

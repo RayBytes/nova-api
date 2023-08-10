@@ -30,7 +30,7 @@ async def create(discord_id: str='') -> dict:
         'api_key': new_api_key,
         'credits': credits_config['start-credits'],
         'role': '',
-        'level': 0,
+        'level': '',
         'status': {
             'active': True,
             'ban_reason': '',

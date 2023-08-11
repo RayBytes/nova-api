@@ -140,9 +140,6 @@ async def stream(
                                 chunk = chunk.replace(os.getenv('MAGIC_WORD', 'novaOSScheckKeyword'), payload['model'])
                                 chunk = chunk.replace(os.getenv('MAGIC_USER_WORD', 'novaOSSuserKeyword'), str(user['_id']))
 
-                                if not chunk.strip():
-                                    send = False
-
                                 if is_chat and '{' in chunk:
                                     data = json.loads(chunk.split('data: ')[1])
                                     chunk = chunk.replace(data['id'], chat_id)
@@ -160,7 +157,7 @@ async def stream(
                                     if data['choices'][0]['delta'] == {'role': 'assistant'}:
                                         send = False
                                 
-                                if send:
+                                if send and chunk.strip():
                                     final_chunk = chunk.strip().replace('data: [DONE]', '') + '\n\n'
                                     yield final_chunk
 

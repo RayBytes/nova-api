@@ -34,13 +34,6 @@ async def log_api_request(user: dict, incoming_request, target_url: str):
         if 'JSONDecodeError' in str(exc):
             pass
 
-    last_prompt = None
-    if 'messages' in payload:
-        last_prompt = payload['messages'][-1]['content'][:50]
-
-        if len(last_prompt) == 50:
-            last_prompt += '...'
-
     model = payload.get('model')
     ip_address = await network.get_ip(incoming_request)
     useragent = await replacer(incoming_request.headers.get('User-Agent'), UA_SIMPLIFY)
@@ -56,7 +49,6 @@ async def log_api_request(user: dict, incoming_request, target_url: str):
         },
         'details': {
             'model': model,
-            'last_prompt': last_prompt,
             'target_url': target_url
         }
     }

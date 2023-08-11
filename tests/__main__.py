@@ -83,9 +83,9 @@ def test_all():
 
     # print(test_server())
     # print(test_api())
-    # print(test_library())
+    print(test_library())
     # print(test_library_moderation())
-    print(test_models())
+    # print(test_models())
 
 def test_api_moderation(model: str=MODEL, messages: List[dict]=None) -> dict:
     """Tests an API api_endpoint."""

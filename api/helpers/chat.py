@@ -12,6 +12,8 @@ class CompletionStop:
     """End of a chat"""
 
 async def create_chat_id() -> str:
+    """Generates a random chat ID"""
+
     chars = string.ascii_letters + string.digits
     chat_id = ''.join(random.choices(chars, k=32))
 

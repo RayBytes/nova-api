@@ -12,8 +12,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+USE_PROXY_LIST = os.getenv('USE_PROXY_LIST', 'False').lower() == 'true'
+
 class Proxy:
-    """Represents a proxy. The type can be either http, https, socks4 or socks5."""
+    """Represents a proxy. The type can be either http, https, socks4 or socks5.
+You can also pass a url, which will be parsed into the other attributes.
+URL format:
+    [type]://[username:password@]host:port
+"""
 
     def __init__(self,
         url: str=None,
@@ -36,7 +42,7 @@ class Proxy:
 
         self.proxy_type = proxy_type
         self.host_or_ip = host_or_ip
-        self.ip_address = socket.gethostbyname(self.host_or_ip) #if host_or_ip.replace('.', '').isdigit() else host_or_ip
+        self.ip_address = socket.gethostbyname(self.host_or_ip) # get ip address from host
         self.host = self.host_or_ip
         self.port = port
         self.username = username
@@ -54,6 +60,8 @@ class Proxy:
 
     @property
     def connector(self):
+        """Returns an aiohttp_socks.ProxyConnector object. Which can be used in aiohttp.ClientSession."""
+
         proxy_types = {
             'http': aiohttp_socks.ProxyType.HTTP,
             'https': aiohttp_socks.ProxyType.HTTP,
@@ -65,10 +73,12 @@ class Proxy:
             proxy_type=proxy_types[self.proxy_type],
             host=self.ip_address,
             port=self.port,
-            rdns=False,
+            rdns=False, # remote DNS
             username=self.username,
             password=self.password
         )
+
+# load proxies from files
 
 proxies_in_files = []
 
@@ -84,27 +94,19 @@ try:
 except FileNotFoundError:
     pass
 
-class ProxyChain:
+# Proxy lists support
+
+class ProxyLists:
     def __init__(self):
         random_proxy = random.choice(proxies_in_files)
 
         self.get_random = Proxy(url=random_proxy)
         self.connector = aiohttp_socks.ChainProxyConnector.from_urls(proxies_in_files)
 
-try:
-    default_chain = ProxyChain()
-    random_proxy = ProxyChain().get_random
-except IndexError:
-    pass
+# ================================================================================================================================ #
 
-default_proxy = Proxy(
-    proxy_type=os.getenv('PROXY_TYPE', 'http'),
-    host_or_ip=os.getenv('PROXY_HOST', '127.0.0.1'),
-    port=int(os.getenv('PROXY_PORT', '8080')),
-    username=os.getenv('PROXY_USER'),
-    password=os.getenv('PROXY_PASS')
-)
-
+# Proxy tests
+# Can be useful if you want to troubleshoot your proxies
 
 def test_httpx_workaround():
     import httpx
@@ -152,6 +154,22 @@ async def text_httpx_socks():
     async with httpx.AsyncClient(transport=transport) as client:
         res = await client.get('https://checkip.amazonaws.com')
         return res.text
+
+# ================================================================================================================================ #
+
+def get_proxy() -> Proxy:
+    """Returns a Proxy object. The proxy is either from the proxy list or from the environment variables.
+"""
+    if USE_PROXY_LIST:
+        return ProxyLists().get_random
+
+    return Proxy(
+        proxy_type=os.getenv('PROXY_TYPE', 'http'),
+        host_or_ip=os.getenv('PROXY_HOST', '127.0.0.1'),
+        port=int(os.getenv('PROXY_PORT', '8080')),
+        username=os.getenv('PROXY_USER'),
+        password=os.getenv('PROXY_PASS')
+    )
 
 if __name__ == '__main__':
     # print(test_httpx())

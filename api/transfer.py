@@ -1,4 +1,4 @@
-"""Module for transferring requests to ClosedAI API"""
+"""Does quite a few checks and prepares the incoming request for the target endpoint, so it can be streamed"""
 
 import json
 import yaml

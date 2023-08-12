@@ -1,3 +1,5 @@
+"""This module contains the streaming logic for the API."""
+
 import os
 import json
 import dhooks
@@ -33,7 +35,6 @@ async def stream(
     user: dict=None,
     payload: dict=None,
     credits_cost: int=0,
-    demo_mode: bool=False,
     input_tokens: int=0,
     incoming_request: starlette.requests.Request=None,
 ):
@@ -44,6 +45,7 @@ async def stream(
         is_chat = True
         model = payload['model']
 
+    # Chat completions always have the same beginning
     if is_chat and is_stream:
         chat_id = await chat.create_chat_id()
 
@@ -66,15 +68,22 @@ async def stream(
         'error': 'No JSON response could be received'
     }
 
+    # Try to get a response from the API
     for _ in range(5):
         headers = {
             'Content-Type': 'application/json'
         }
 
+        # Load balancing
+        # If the request is a chat completion, then we need to load balance between chat providers
+        # If the request is an organic request, then we need to load balance between organic providers
+
         try:
             if is_chat:
                 target_request = await load_balancing.balance_chat_request(payload)
             else:
+                # "organic" means that it's not using a reverse engineered front-end, but rather ClosedAI's API directly
+                # churchless.tech is an example of an organic provider, because it redirects the request to ClosedAI.
                 target_request = await load_balancing.balance_organic_request({
                     'method': incoming_request.method,
                     'path': path,
@@ -83,9 +92,10 @@ async def stream(
                     'cookies': incoming_request.cookies
                 })
         except ValueError as exc:
+            # Error load balancing? Send a webhook to the admins
             webhook = dhooks.Webhook(os.getenv('DISCORD_WEBHOOK__API_ISSUE'))
-
             webhook.send(content=f'API Issue: **`{exc}`**\nhttps://i.imgflip.com/7uv122.jpg')
+
             error = await errors.yield_error(
                 500,
                 'Sorry, the API has no working keys anymore.',
@@ -100,7 +110,9 @@ async def stream(
         if target_request['method'] == 'GET' and not payload:
             target_request['payload'] = None
 
-        async with aiohttp.ClientSession(connector=proxies.default_proxy.connector) as session:
+        # We haven't done any requests as of right now, everything until now was just preparation
+        # Here, we process the request
+        async with aiohttp.ClientSession(connector=proxies.get_proxy().connector) as session:
             try:
                 async with session.request(
                     method=target_request.get('method', 'POST'),
@@ -116,9 +128,11 @@ async def stream(
 
                     timeout=aiohttp.ClientTimeout(total=float(os.getenv('TRANSFER_TIMEOUT', '120'))),
                 ) as response:
+                    # if the answer is JSON
                     if response.content_type == 'application/json':
                         data = await response.json()
 
+                        # Invalidate the key if it's not working
                         if data.get('code') == 'invalid_api_key':
                             await provider_auth.invalidate_key(target_request.get('provider_auth'))
                             continue
@@ -126,37 +140,40 @@ async def stream(
                         if response.ok:
                             json_response = data
 
+                    # if the answer is a stream
                     if is_stream:
                         try:
                             response.raise_for_status()
                         except Exception as exc:
+                            # Rate limit? Balance again
                             if 'Too Many Requests' in str(exc):
                                 continue
 
                         try:
+                            # process the response chunks
                             async for chunk in response.content.iter_any():
                                 send = False
                                 chunk = f'{chunk.decode("utf8")}\n\n'
-                                chunk = chunk.replace(os.getenv('MAGIC_WORD', 'novaOSScheckKeyword'), payload['model'])
-                                chunk = chunk.replace(os.getenv('MAGIC_USER_WORD', 'novaOSSuserKeyword'), str(user['_id']))
 
                                 if is_chat and '{' in chunk:
+                                    # parse the JSON
                                     data = json.loads(chunk.split('data: ')[1])
                                     chunk = chunk.replace(data['id'], chat_id)
                                     send = True
 
+                                    # create a custom chunk if we're using specific providers
                                     if target_request['module'] == 'twa' and data.get('text'):
                                         chunk = await chat.create_chat_chunk(
                                             chat_id=chat_id,
                                             model=model,
                                             content=['text']
                                         )
-                                    if not data['choices'][0]['delta']:
+
+                                    # don't send empty/unnecessary messages
+                                    if (not data['choices'][0]['delta']) or data['choices'][0]['delta'] == {'role': 'assistant'}:
                                         send = False
 
-                                    if data['choices'][0]['delta'] == {'role': 'assistant'}:
-                                        send = False
-                                
+                                # send the chunk
                                 if send and chunk.strip():
                                     final_chunk = chunk.strip().replace('data: [DONE]', '') + '\n\n'
                                     yield final_chunk
@@ -174,9 +191,10 @@ async def stream(
                     break
 
             except ProxyError as exc:
-                print('proxy error')
+                print('[!] Proxy error:', exc)
                 continue
 
+    # Chat completions always have the same ending
     if is_chat and is_stream:
         chunk = await chat.create_chat_chunk(
             chat_id=chat_id,
@@ -186,10 +204,11 @@ async def stream(
         yield chunk
         yield 'data: [DONE]\n\n'
 
+    # If the response is JSON, then we need to yield it like this
     if not is_stream and json_response:
         yield json.dumps(json_response)
 
-    # DONE =========================================================
+    # DONE WITH REQUEST, NOW LOGGING ETC.
 
     if user and incoming_request:
         await logs.log_api_request(

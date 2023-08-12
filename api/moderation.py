@@ -36,7 +36,7 @@ Returns True if the message violates the policy, False otherwise.
             }
         )
 
-        async with aiohttp.ClientSession(connector=proxies.default_proxy.connector) as session:
+        async with aiohttp.ClientSession(connector=proxies.get_proxy().connector) as session:
             try:
                 async with session.request(
                     method=req.get('method', 'POST'),

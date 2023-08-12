@@ -103,60 +103,6 @@ class ProxyLists:
         self.get_random = Proxy(url=random_proxy)
         self.connector = aiohttp_socks.ChainProxyConnector.from_urls(proxies_in_files)
 
-# ================================================================================================================================ #
-
-# Proxy tests
-# Can be useful if you want to troubleshoot your proxies
-
-def test_httpx_workaround():
-    import httpx
-
-    print(default_proxy.proxies)
-
-    # this workaround solves the RNDS issue, but fails for Cloudflare protected websites
-    with httpx.Client(proxies=default_proxy.proxies, headers={'Host': 'checkip.amazonaws.com'}) as client:
-        return client.get(
-        f'http://{socket.gethostbyname("checkip.amazonaws.com")}/',
-    ).text.strip()
-
-def test_requests():
-    import requests
-
-    print(default_proxy.proxies)
-
-    return requests.get(
-        timeout=5,
-        url='https://checkip.amazonaws.com/',
-        proxies=default_proxy.urls
-    ).text.strip()
-
-async def test_aiohttp_socks():
-    async with aiohttp.ClientSession(connector=default_proxy.connector) as session:
-        async with session.get('https://checkip.amazonaws.com/') as response:
-            html = await response.text()
-            return html.strip()
-
-async def streaming_aiohttp_socks():
-    async with aiohttp.ClientSession(connector=default_proxy.connector) as session:
-        async with session.get('https://httpbin.org/get', headers={
-            'Authorization': 'x'
-        }) as response:
-            json = await response.json()
-            return json
-
-async def text_httpx_socks():
-    import httpx
-    from httpx_socks import AsyncProxyTransport
-
-    print(default_proxy.url_ip)
-
-    transport = AsyncProxyTransport.from_url(default_proxy.url_ip)
-    async with httpx.AsyncClient(transport=transport) as client:
-        res = await client.get('https://checkip.amazonaws.com')
-        return res.text
-
-# ================================================================================================================================ #
-
 def get_proxy() -> Proxy:
     """Returns a Proxy object. The proxy is either from the proxy list or from the environment variables.
 """
@@ -170,10 +116,3 @@ def get_proxy() -> Proxy:
         username=os.getenv('PROXY_USER'),
         password=os.getenv('PROXY_PASS')
     )
-
-if __name__ == '__main__':
-    # print(test_httpx())
-    # print(test_requests())
-    # print(asyncio.run(test_aiohttp_socks()))
-    print(asyncio.run(streaming_aiohttp_socks()))
-    # print(asyncio.run(text_httpx_socks()))

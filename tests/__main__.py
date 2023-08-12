@@ -64,6 +64,8 @@ def test_library():
         messages=MESSAGES
     )
 
+    print(completion)
+
     return completion['choices'][0]['message']['content']
 
 def test_library_moderation():

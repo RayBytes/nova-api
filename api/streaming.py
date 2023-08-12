@@ -96,12 +96,11 @@ async def stream(
             webhook = dhooks.Webhook(os.getenv('DISCORD_WEBHOOK__API_ISSUE'))
             webhook.send(content=f'API Issue: **`{exc}`**\nhttps://i.imgflip.com/7uv122.jpg')
 
-            error = await errors.yield_error(
+            yield await errors.yield_error(
                 500,
                 'Sorry, the API has no working keys anymore.',
                 'The admins have been messaged automatically.'
             )
-            yield error 
             return
 
         for k, v in target_request.get('headers', {}).items():
@@ -180,12 +179,11 @@ async def stream(
 
                         except Exception as exc:
                             if 'Connection closed' in str(exc):
-                                error = await errors.yield_error(
+                                yield await errors.yield_error(
                                     500,
                                     'Sorry, there was an issue with the connection.',
                                     'Please first check if the issue on your end. If this error repeats, please don\'t heistate to contact the staff!.'
                                 )
-                                yield error 
                                 return
 
                     break

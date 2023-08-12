@@ -20,8 +20,16 @@ async def create_chat_id() -> str:
     return f'chatcmpl-{chat_id}'
 
 async def create_chat_chunk(chat_id: str, model: str, content=None) -> dict:
-    """Creates a new chat chunk"""
+    """Creates the chunk for streaming chat.
 
+    Args:
+        chat_id (str): _description_
+        model (str): _description_
+        content (_type_, optional): _description_. Defaults to None.
+
+    Returns:
+        dict: _description_
+    """
     content = content or {}
 
     delta = {}
@@ -54,12 +62,3 @@ async def create_chat_chunk(chat_id: str, model: str, content=None) -> dict:
     }
 
     return f'data: {json.dumps(chunk)}\n\n'
-
-if __name__ == '__main__':
-    demo_chat_id = asyncio.run(create_chat_id())
-    print(demo_chat_id)
-    print(asyncio.run(create_chat_chunk(
-        model='gpt-4',
-        content='Hello',
-        chat_id=demo_chat_id,
-    )))

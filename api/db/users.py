@@ -12,8 +12,12 @@ load_dotenv()
 with open('config/credits.yml', encoding='utf8') as f:
     credits_config = yaml.safe_load(f)
 
-async def _get_mongo(collection_name: str):
-    return AsyncIOMotorClient(os.getenv('MONGO_URI'))['nova-core'][collection_name]
+## MONGODB Setup
+
+conn = AsyncIOMotorClient(os.getenv('MONGO_URI'))
+
+async def _get_collection(collection_name: str):
+    return conn['nova-core'][collection_name]
 
 async def create(discord_id: str='') -> dict:
     """Adds a new user to the MongoDB collection."""
@@ -41,33 +45,33 @@ async def create(discord_id: str='') -> dict:
         }
     }
 
-    db = await _get_mongo('users')
+    db = await _get_collection('users')
     await db.insert_one(new_user)
     user = await db.find_one({'api_key': new_api_key})	
     return user
 
 async def by_id(user_id: str):
-    db = await _get_mongo('users')
+    db = await _get_collection('users')
     return await db.find_one({'_id': user_id})
 
 async def by_discord_id(discord_id: str):
-    db = await _get_mongo('users')
+    db = await _get_collection('users')
     return await db.find_one({'auth.discord': str(int(discord_id))})
 
 async def by_api_key(key: str):
-    db = await _get_mongo('users')
+    db = await _get_collection('users')
     return await db.find_one({'api_key': key})
 
 async def update_by_id(user_id: str, update):
-    db = await _get_mongo('users')
+    db = await _get_collection('users')
     return await db.update_one({'_id': user_id}, update)
 
 async def update_by_filter(obj_filter, update):
-    db = await _get_mongo('users')
+    db = await _get_collection('users')
     return await db.update_one(obj_filter, update)
 
 async def delete(user_id: str):
-    db = await _get_mongo('users')
+    db = await _get_collection('users')
     await db.delete_one({'_id': user_id})
 
 async def demo():

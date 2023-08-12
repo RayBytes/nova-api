@@ -39,7 +39,6 @@ async def balance_organic_request(request: dict) -> dict:
     """Load balnace to non-chat completion request between other "organic" providers which respond in the desired format already.
 Organic providers are used for non-chat completions, such as moderation and other paths.    
 """
-
     providers_available = []
 
     if not request.get('headers'):

@@ -51,7 +51,7 @@ async def create_user(incoming_request: fastapi.Request):
     auth_error = await check_core_auth(incoming_request)
 
     if auth_error:
-        return auth_error
+        return auth_error 
 
     try:
         payload = await incoming_request.json()

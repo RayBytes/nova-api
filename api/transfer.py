@@ -26,8 +26,7 @@ async def handle(incoming_request):
 
     # METHOD
     if incoming_request.method not in ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']:
-        error = await errors.error(405, f'Method "{incoming_request.method}" is not allowed.', 'Change the request method to the correct one.')
-        return error
+        return await errors.error(405, f'Method "{incoming_request.method}" is not allowed.', 'Change the request method to the correct one.')
 
     # PAYLOAD
     try:
@@ -35,42 +34,37 @@ async def handle(incoming_request):
     except json.decoder.JSONDecodeError:
         payload = {}
 
-    # TOKENS
+    # Tokenise w/ tiktoken
     try:
         input_tokens = await tokens.count_for_messages(payload['messages'])
     except (KeyError, TypeError):
         input_tokens = 0
 
-    # AUTH
+    # Check user auth
     received_key = incoming_request.headers.get('Authorization')
 
     if not received_key:
-        error = await errors.error(401, 'No NovaAI API key given!', 'Add "Authorization: Bearer nv-..." to your request headers.')
-        return error
+        return await errors.error(401, 'No NovaAI API key given!', 'Add "Authorization: Bearer nv-..." to your request headers.')
 
     if received_key.startswith('Bearer '):
         received_key = received_key.split('Bearer ')[1]
 
-    # USER
     user = await users.by_api_key(received_key.strip())
 
     if not user:
-        error = await errors.error(401, 'Invalid NovaAI API key!', 'Create a new NovaOSS API key.')
-        return error
+        return await errors.error(401, 'Invalid NovaAI API key!', 'Create a new NovaOSS API key.')
 
     ban_reason = user['status']['ban_reason']
     if ban_reason:
-        error = await errors.error(403, f'Your NovaAI account has been banned. Reason: "{ban_reason}".', 'Contact the staff for an appeal.')
-        return error
+        return await errors.error(403, f'Your NovaAI account has been banned. Reason: "{ban_reason}".', 'Contact the staff for an appeal.')
 
     if not user['status']['active']:
-        error = await errors.error(418, 'Your NovaAI account is not active (paused).', 'Simply re-activate your account using a Discord command or the web panel.')
-        return error
+        return await errors.error(418, 'Your NovaAI account is not active (paused).', 'Simply re-activate your account using a Discord command or the web panel.')
 
     if '/models' in path:
         return fastapi.responses.JSONResponse(content=models_list)
 
-    # COST
+    # Calculate cost of tokens & check for nsfw prompts
     costs = credits_config['costs']
     cost = costs['other']
 
@@ -94,17 +88,17 @@ async def handle(incoming_request):
                 policy_violation = await moderation.is_policy_violated(inp)
 
     if policy_violation:
-        error = await errors.error(400, f'The request contains content which violates this model\'s policies for "{policy_violation}".', 'We currently don\'t support any NSFW models.')
-        return error
+        return await errors.error(400, f'The request contains content which violates this model\'s policies for "{policy_violation}".', 'We currently don\'t support any NSFW models.')
+
 
     role_cost_multiplier = credits_config['bonuses'].get(user['role'], 1)
     cost = round(cost * role_cost_multiplier)
 
     if user['credits'] < cost:
-        error = await errors.error(429, 'Not enough credits.', 'Wait or earn more credits. Learn more on our website or Discord server.')
-        return error
+        return await errors.error(429, 'Not enough credits.', 'Wait or earn more credits. Learn more on our website or Discord server.')
 
-    # READY
+
+    # Send the completion request
 
     if 'chat/completions' in path and not payload.get('stream') is True:
         payload['stream'] = False

@@ -35,7 +35,7 @@ async def balance_chat_request(payload: dict) -> dict:
     return target
 
 async def balance_organic_request(request: dict) -> dict:
-    """Load balnace to non-chat completion request between other "organic" providers which respond in the desired format already."""
+    """Load balance to non-chat completion request between other "organic" providers which respond in the desired format already."""
 
     providers_available = []
 

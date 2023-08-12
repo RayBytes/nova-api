@@ -1,7 +1,18 @@
 import tiktoken
 
 async def count_for_messages(messages: list, model: str='gpt-3.5-turbo-0613') -> int:
-    """Return the number of tokens used by a list of messages."""
+    """Return the number of tokens used by a list of messages
+
+    Args:
+        messages (list): _description_
+        model (str, optional): _description_. Defaults to 'gpt-3.5-turbo-0613'.
+
+    Raises:
+        NotImplementedError: _description_
+
+    Returns:
+        int: _description_
+    """
 
     try:
         encoding = tiktoken.encoding_for_model(model)

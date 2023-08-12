@@ -1,6 +1,19 @@
 # ☄️ NovaOSS API Server
 Reverse proxy server for "Closed"AI's API.
 
+![Badge showing the most used language](https://img.shields.io/github/languages/top/novaoss/nova-api)
+![Badge showing the code size](https://img.shields.io/github/languages/code-size/novaoss/nova-api)
+![Discord Badge](https://img.shields.io/discord/1120037287300976640)
+![Badge showing the number of issues](https://img.shields.io/github/issues/novaoss/nova-api)
+![Badge showing the number of pull requests](https://img.shields.io/github/issues-pr/novaoss/nova-api)
+![Badge showing the license](https://img.shields.io/github/license/novaoss/nova-api)
+
+![Badge showing the number of stars](https://img.shields.io/github/stars/novaoss/nova-api?style=social)
+![Badge showing the number of forks](https://img.shields.io/github/forks/novaoss/nova-api?style=social)
+![Badge showing the number of watchers](https://img.shields.io/github/watchers/novaoss/nova-api?style=social)
+
+![Nova-API Conver/Banner Image. A picture of a galaxy with the caption "the core API server"](https://i.ibb.co/ZBhkS56/nova-api.png)
+
 > "*OpenAI is very closed*"
 > 
 > — [ArsTechnica (July 2023)](https://arstechnica.com/information-technology/2023/07/is-chatgpt-getting-worse-over-time-study-claims-yes-but-others-arent-sure/)

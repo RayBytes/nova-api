@@ -12,12 +12,16 @@ class CompletionStop:
     """End of a chat"""
 
 async def create_chat_id() -> str:
+    """Generates a random chat ID"""
+
     chars = string.ascii_letters + string.digits
     chat_id = ''.join(random.choices(chars, k=32))
 
     return f'chatcmpl-{chat_id}'
 
 async def create_chat_chunk(chat_id: str, model: str, content=None) -> dict:
+    """Creates a new chat chunk"""
+
     content = content or {}
 
     delta = {}

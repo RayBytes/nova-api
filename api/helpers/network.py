@@ -2,6 +2,8 @@ import base64
 import asyncio
 
 async def get_ip(request) -> str:
+    """Get the IP address of the incoming request."""
+
     xff = None
     if request.headers.get('x-forwarded-for'):
         xff, *_ = request.headers['x-forwarded-for'].split(', ')
@@ -17,6 +19,8 @@ async def get_ip(request) -> str:
     return detected_ip
 
 async def add_proxy_auth_to_headers(username: str, password: str, headers: dict) -> dict:
+    """Add proxy authentication to the headers. This is useful if the proxy authentication doesn't work as it should."""
+
     proxy_auth = base64.b64encode(f'{username}:{password}'.encode()).decode()
     headers['Proxy-Authorization'] = f'Basic {proxy_auth}'
     return headers

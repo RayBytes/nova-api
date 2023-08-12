@@ -1,6 +1,14 @@
+"""This module contains functions for authenticating with providers."""
+
 import asyncio
 
-async def invalidate_key(provider_and_key):
+async def invalidate_key(provider_and_key: str) -> none:
+    """Invalidates a key stored in the secret/ folder by storing it in the associated .invalid.txt file.
+The schmea in which <provider_and_key> should be passed is:
+<provider_name><key>, e.g.
+closed4>sk-...
+"""
+
     if not provider_and_key:
         return
 

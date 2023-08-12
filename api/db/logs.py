@@ -16,8 +16,12 @@ UA_SIMPLIFY = {
     'AppleWebKit/537.36 (KHTML, like Gecko)': 'K',
 }
 
-async def _get_mongo(collection_name: str):
-    return AsyncIOMotorClient(os.getenv('MONGO_URI'))['nova-core'][collection_name]
+## MONGODB Setup
+
+conn = AsyncIOMotorClient(os.getenv('MONGO_URI'))
+
+async def _get_collection(collection_name: str):
+    return conn['nova-core'][collection_name]
 
 async def replacer(text: str, dict_: dict) -> str:
     for k, v in dict_.items():
@@ -25,7 +29,7 @@ async def replacer(text: str, dict_: dict) -> str:
     return text
 
 async def log_api_request(user: dict, incoming_request, target_url: str):
-    db = await _get_mongo('logs')
+    db = await _get_collection('logs')
     payload = {}
 
     try:
@@ -58,19 +62,19 @@ async def log_api_request(user: dict, incoming_request, target_url: str):
     return log_item
 
 async def by_id(log_id: str):
-    db = await _get_mongo('logs')
+    db = await _get_collection('logs')
     return await db.find_one({'_id': log_id})
 
 async def by_user_id(user_id: str):
-    db = await _get_mongo('logs')
+    db = await _get_collection('logs')
     return await db.find({'user_id': user_id})
 
 async def delete_by_id(log_id: str):
-    db = await _get_mongo('logs')
+    db = await _get_collection('logs')
     return await db.delete_one({'_id': log_id})
 
 async def delete_by_user_id(user_id: str):
-    db = await _get_mongo('logs')
+    db = await _get_collection('logs')
     return await db.delete_many({'user_id': user_id})
 
 if __name__ == '__main__':

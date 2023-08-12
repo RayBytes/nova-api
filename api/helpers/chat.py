@@ -62,12 +62,3 @@ async def create_chat_chunk(chat_id: str, model: str, content=None) -> dict:
     }
 
     return f'data: {json.dumps(chunk)}\n\n'
-
-if __name__ == '__main__':
-    demo_chat_id = asyncio.run(create_chat_id())
-    print(demo_chat_id)
-    print(asyncio.run(create_chat_chunk(
-        model='gpt-4',
-        content='Hello',
-        chat_id=demo_chat_id,
-    )))

@@ -15,11 +15,14 @@ load_dotenv()
 USE_PROXY_LIST = os.getenv('USE_PROXY_LIST', 'False').lower() == 'true'
 
 class Proxy:
-    """Represents a proxy. The type can be either http, https, socks4 or socks5.
-You can also pass a url, which will be parsed into the other attributes.
-URL format:
+    """
+    ### Represents a proxy. 
+    The type can be either http, https, socks4 or socks5.
+    You can also pass a url, which will be parsed into the other attributes.
+    
+    URL format:
     [type]://[username:password@]host:port
-"""
+    """
 
     def __init__(self,
         url: str=None,
@@ -73,28 +76,27 @@ URL format:
             proxy_type=proxy_types[self.proxy_type],
             host=self.ip_address,
             port=self.port,
-            rdns=False, # remote DNS
+            rdns=False, 
             username=self.username,
             password=self.password
         )
 
-# load proxies from files
+## Load proxies from their files
 
 proxies_in_files = []
 
 try:
     for proxy_type in ['http', 'socks4', 'socks5']:
         with open(f'secret/proxies/{proxy_type}.txt') as f:
-            for line in f.readlines():
-                if line.strip() and not line.strip().startswith('#'):
-                    if '#' in line:
-                        line = line.split('#')[0]
+            for line in f:
+                clean_line = line.split('#', 1)[0].strip()
+                if clean_line:
+                    proxies_in_files.append(f'{proxy_type}://{clean_line}')
 
-                    proxies_in_files.append(f'{proxy_type}://{line.strip()}')
 except FileNotFoundError:
     pass
 
-# Proxy lists support
+## Manages the proxy list
 
 class ProxyLists:
     def __init__(self):
@@ -104,8 +106,11 @@ class ProxyLists:
         self.connector = aiohttp_socks.ChainProxyConnector.from_urls(proxies_in_files)
 
 def get_proxy() -> Proxy:
-    """Returns a Proxy object. The proxy is either from the proxy list or from the environment variables.
-"""
+    """
+    ### Returns a Proxy object
+    The proxy is either from the proxy list or from the environment variables.
+    """
+    
     if USE_PROXY_LIST:
         return ProxyLists().get_random
 

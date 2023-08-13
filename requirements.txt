@@ -14,5 +14,5 @@ pytz==2023.3
 PyYAML==6.0.1
 rich==13.5.2
 setuptools==65.5.1
-starlette==0.31.0
+starlette
 tiktoken==0.4.0

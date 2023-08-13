@@ -15,7 +15,8 @@ import proxies
 import provider_auth
 import load_balancing
 
-from db import logs, users, stats
+from db import logs, users
+from db.stats import Stats
 from helpers import network, chat, errors
 
 load_dotenv()
@@ -30,7 +31,7 @@ DEMO_PAYLOAD = {
     ]
 }
 
-async def process_response(response, is_chat, chat_id, model):
+async def process_response(response, is_chat, chat_id, model, target_request):
     """Proccesses chunks from streaming
 
     Args:
@@ -154,7 +155,7 @@ async def stream(
                             if 'Too Many Requests' in str(exc):
                                 continue
 
-                        async for chunk in process_response(response, is_chat, chat_id, model):
+                        async for chunk in process_response(response, is_chat, chat_id, model, target_request):
                             yield chunk
 
                     break
@@ -177,14 +178,13 @@ async def stream(
         await users.update_by_id(user['_id'], {'$inc': {'credits': -credits_cost}})
 
     ip_address = await network.get_ip(incoming_request)
-    await stats.add_date()
-    await stats.add_ip_address(ip_address)
-    await stats.add_path(path)
-    await stats.add_target(target_request['url'])
-
+    await Stats.add_date()
+    await Stats.add_ip_address(ip_address)
+    await Stats.add_path(path)
+    await Stats.add_target(target_request['url'])
     if is_chat:
-        await stats.add_model(model)
-        await stats.add_tokens(input_tokens, model)
+        await Stats.add_model(model)
+        await Stats.add_tokens(input_tokens, model)
 
 if __name__ == '__main__':
     asyncio.run(stream())

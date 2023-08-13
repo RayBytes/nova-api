@@ -12,7 +12,14 @@ from dotenv import load_dotenv
 load_dotenv()
 router = fastapi.APIRouter(tags=['core'])
 
+
 async def check_core_auth(request):
+    """
+    
+    ### Checks the request's auth
+    Auth is taken from environment variable `CORE_API_KEY`
+
+    """
     received_auth = request.headers.get('Authorization')
 
     if received_auth != os.getenv('CORE_API_KEY'):
@@ -20,14 +27,12 @@ async def check_core_auth(request):
 
 @router.get('/users')
 async def get_users(discord_id: int, incoming_request: fastapi.Request):
-    auth_error = await check_core_auth(incoming_request)
-
-    if auth_error:
+    auth = await check_core_auth(incoming_request)
+    if auth:
         return auth_error
 
-    user = await users.by_discord_id(discord_id)
-
-    if not user:
+    # Get user by discord ID
+    if not await users.by_discord_id(discord_id):
         return fastapi.Response(status_code=404, content='User not found.')
 
     return user

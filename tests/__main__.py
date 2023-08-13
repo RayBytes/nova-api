@@ -83,11 +83,20 @@ def test_models():
 def test_all():
     """Runs all tests."""
 
-    # print(test_server())
-    # print(test_api())
+    print("Running test on API server to check if its running.."
+    print(test_server())
+
+    print("Running a api endpoint to see if requests can go through..."
+    print(test_api())
+
+    print("Checking if the API works with the python library..."
     print(test_library())
-    # print(test_library_moderation())
-    # print(test_models())
+
+    print("Checking if the moderation endpoint works...")
+    print(test_library_moderation())
+
+    print("Checking if all models can be GET"
+    print(test_models())
 
 def test_api_moderation(model: str=MODEL, messages: List[dict]=None) -> dict:
     """Tests an API api_endpoint."""

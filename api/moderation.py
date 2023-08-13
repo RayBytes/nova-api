@@ -10,12 +10,13 @@ import load_balancing
 from typing import Union
 
 async def is_policy_violated(inp: Union[str, list]) -> bool:
-    """Check if a message violates the moderation policy.
-You can either pass a list of messages consisting of dicts with "role" and "content", as used in the API parameter,
-or just a simple string.
-
-Returns True if the message violates the policy, False otherwise.
-"""
+    """
+    ### Check if a message violates the moderation policy.
+    You can either pass a list of messages consisting of dicts with "role" and "content", as used in the API parameter,
+    or just a simple string.
+    
+    Returns True if the message violates the policy, False otherwise.
+    """
 
     text = inp
 

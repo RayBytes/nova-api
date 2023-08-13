@@ -75,7 +75,7 @@ async def stream(
         input_tokens (int, optional): Total tokens calculated with tokenizer. Defaults to 0.
         incoming_request (starlette.requests.Request, optional): Incoming request. Defaults to None.
     """
-    
+
     is_chat = False
     is_stream = payload.get('stream', False)
 
@@ -93,10 +93,18 @@ async def stream(
     for _ in range(5):
         headers = {'Content-Type': 'application/json'}
 
+
+        # Load balancing
+        # If the request is a chat completion, then we need to load balance between chat providers
+        # If the request is an organic request, then we need to load balance between organic providers
+
         try:
             if is_chat:
                 target_request = await load_balancing.balance_chat_request(payload)
             else:
+                
+                # In this case we are doing a organic request. "organic" means that it's not using a reverse engineered front-end, but rather ClosedAI's API directly
+                # churchless.tech is an example of an organic provider, because it redirects the request to ClosedAI.
                 target_request = await load_balancing.balance_organic_request({
                     'method': incoming_request.method,
                     'path': path,
@@ -115,6 +123,8 @@ async def stream(
         if target_request['method'] == 'GET' and not payload:
             target_request['payload'] = None
 
+        # We haven't done any requests as of right now, everything until now was just preparation
+        # Here, we process the request
         async with aiohttp.ClientSession(connector=proxies.get_proxy().connector) as session:
             try:
                 async with session.request(

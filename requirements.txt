@@ -13,6 +13,6 @@ python_socks==2.3.0
 pytz==2023.3
 PyYAML==6.0.1
 rich==13.5.2
-setuptools==49.2.1
+setuptools==65.5.1
 starlette==0.31.0
 tiktoken==0.4.0

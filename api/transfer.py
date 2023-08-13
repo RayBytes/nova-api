@@ -20,7 +20,11 @@ with open('config/credits.yml', encoding='utf8') as f:
     credits_config = yaml.safe_load(f)
 
 async def handle(incoming_request):
-    """Transfer a streaming response from the incoming request to the target endpoint"""
+    """
+    ### Transfer a streaming response 
+    Takes the request from the incoming request to the target endpoint.
+    Checks method, token amount, auth and cost along with if request is NSFW.
+    """
 
     path = incoming_request.url.path.replace('v1/v1/', 'v1/')
 

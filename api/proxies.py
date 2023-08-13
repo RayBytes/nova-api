@@ -63,7 +63,11 @@ class Proxy:
 
     @property
     def connector(self):
-        """Returns an aiohttp_socks.ProxyConnector object. Which can be used in aiohttp.ClientSession."""
+        """
+        ### Returns a proxy connector
+        Returns an aiohttp_socks.ProxyConnector object. 
+        This can be used in aiohttp.ClientSession.
+        """
 
         proxy_types = {
             'http': aiohttp_socks.ProxyType.HTTP,

@@ -20,7 +20,14 @@ async def _get_collection(collection_name: str):
     return conn['nova-core'][collection_name]
 
 async def create(discord_id: str='') -> dict:
-    """Adds a new user to the MongoDB collection."""
+    """Add a user to the mongodb
+
+    Args:
+        discord_id (str): Defaults to ''.
+
+    Returns:
+        dict: The user object
+    """
 
     chars = string.ascii_letters + string.digits
 

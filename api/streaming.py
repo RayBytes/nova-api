@@ -38,6 +38,16 @@ async def stream(
     input_tokens: int=0,
     incoming_request: starlette.requests.Request=None,
 ):
+    """Stream the completions request. Sends data in chunks
+
+    Args:
+        path (str, optional): URL Path. Defaults to '/v1/chat/completions'.
+        user (dict, optional): User object (dict) Defaults to None.
+        payload (dict, optional): Payload. Defaults to None.
+        credits_cost (int, optional): Cost of the credits of the request. Defaults to 0.
+        input_tokens (int, optional): Total tokens calculated with tokenizer. Defaults to 0.
+        incoming_request (starlette.requests.Request, optional): Incoming request. Defaults to None.
+    """
     is_chat = False
     is_stream = payload.get('stream', False)
 

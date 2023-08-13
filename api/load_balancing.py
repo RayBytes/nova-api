@@ -10,8 +10,10 @@ async def _get_module_name(module) -> str:
     return name
 
 async def balance_chat_request(payload: dict) -> dict:
-    """Load balance the chat completion request between chat providers.
-"""
+    """
+    ### Load balance the chat completion request between chat providers.
+    Providers are sorted by streaming and models. Target (provider.chat_completion) is returned
+    """
 
     providers_available = []
 
@@ -36,9 +38,11 @@ async def balance_chat_request(payload: dict) -> dict:
     return target
 
 async def balance_organic_request(request: dict) -> dict:
-    """Load balnace to non-chat completion request between other "organic" providers which respond in the desired format already.
-Organic providers are used for non-chat completions, such as moderation and other paths.    
-"""
+    """
+    ### Load balance non-chat completion request
+    Balances between other "organic" providers which respond in the desired format already.
+    Organic providers are used for non-chat completions, such as moderation and other paths.    
+    """
     providers_available = []
 
     if not request.get('headers'):

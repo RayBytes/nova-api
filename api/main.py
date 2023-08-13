@@ -31,7 +31,9 @@ async def startup_event():
 
 @app.get('/')
 async def root():
-    """Returns the root endpoint."""
+    """
+    Returns the root endpoint.
+    """
 
     return {
         'status': 'ok',

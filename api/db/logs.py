@@ -24,11 +24,24 @@ async def _get_collection(collection_name: str):
     return conn['nova-core'][collection_name]
 
 async def replacer(text: str, dict_: dict) -> str:
+    # This seems to exist for a very specific and dumb purpose :D
     for k, v in dict_.items():
         text = text.replace(k, v)
     return text
 
 async def log_api_request(user: dict, incoming_request, target_url: str):
+    """Logs the API Request into the database.
+    No input prompt is logged, however data such as IP & useragent is noted.
+    This would be useful for security reasons. Other minor data is also collected.
+
+    Args:
+        user (dict): User dict object
+        incoming_request (_type_): Request
+        target_url (str): The URL the api request was targetted to.
+
+    Returns:
+        _type_: _description_
+    """
     db = await _get_collection('logs')
     payload = {}
 

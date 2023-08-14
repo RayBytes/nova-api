@@ -30,7 +30,7 @@ with open('config/config.yml', encoding='utf8') as f:
     config = yaml.safe_load(f)
 
 ## Where all rate limit requested data will be stored.
-# Rate limit data is **not persistent**. I.E It will be deleted on server stop/restart.
+# Rate limit data is **not persistent** (It will be deleted on server stop/restart).
 user_last_request_time = {}
 
 DEMO_PAYLOAD = {
@@ -90,6 +90,9 @@ async def stream(
         incoming_request (starlette.requests.Request, optional): Incoming request. Defaults to None.
     """
 
+    ## Rate limits user.
+    # If rate limit is exceeded, error code 429. Otherwise, lets the user pass but notes down
+    # last request time for future requests.
     if user:
         role = user.get('role', 'default')
         rate_limit = config['roles'][role]['rate_limit'].get(payload['model'], 10)
@@ -106,9 +109,6 @@ async def stream(
     ## Setup managers
     db = UserManager()
     stats = StatsManager()
-
-    ## Check if breaching rate limit
-
 
     is_chat = False
     is_stream = payload.get('stream', False)

@@ -10,8 +10,17 @@ costs:
     gpt-4: 30
     gpt-4-32k: 100
 
-# bonuses are multiplier for costs:
-# final_cost = cost * bonus
+## Roles Explanation
+
+# Bonuses: They are a multiplier for costs
+#          They work like: final_cost = cost * bonus
+# Rate limits: Limit the requests of the user
+#              The rate limit is by how many seconds until a new request can be done.
+
+## TODO: Setup proper rate limit settings for each role
+##       Current settings are:
+##       **NOT MEANT FOR PRODUCTION. DO NOT USE WITH THESE SETTINGS.**
+
 roles:
   owner:
     bonus: 0.1

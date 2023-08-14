@@ -16,8 +16,8 @@ load_dotenv()
 
 models_list = json.load(open('models.json'))
 
-with open('config/credits.yml', encoding='utf8') as f:
-    credits_config = yaml.safe_load(f)
+with open('config/config.yml', encoding='utf8') as f:
+    config = yaml.safe_load(f)
 
 async def handle(incoming_request):
     """
@@ -59,7 +59,7 @@ async def handle(incoming_request):
     if path_contains_models:
         return fastapi.responses.JSONResponse(content=models_list)
 
-    costs = credits_config['costs']
+    costs = config['costs']
     cost = costs['other']
 
     if 'chat/completions' in path:
@@ -74,7 +74,7 @@ async def handle(incoming_request):
     if policy_violation:
         return await errors.error(400, f'The request contains content which violates this model\'s policies for "{policy_violation}".', 'We currently don\'t support any NSFW models.')
 
-    role_cost_multiplier = credits_config['bonuses'].get(user['role'], 1)
+    role_cost_multiplier = config['roles'][user['role']]['bonus']
     cost = round(cost * role_cost_multiplier)
 
     if user['credits'] < cost:

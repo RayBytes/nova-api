@@ -12,7 +12,6 @@ from dotenv import load_dotenv
 load_dotenv()
 router = fastapi.APIRouter(tags=['core'])
 
-
 async def check_core_auth(request):
     """
     

@@ -5,7 +5,6 @@ import fastapi
 from rich import print
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
-
 import core
 import transfer
 

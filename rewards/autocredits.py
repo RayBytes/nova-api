@@ -1,10 +1,9 @@
-async def get_all_users(client):
-    users = client['nova-core']['users']
-    return users
+from users import UserManager
 
 
 async def update_credits(pymongo_client, settings=None):
-    users = await get_all_users(pymongo_client)
+    manager = UserManager()
+    users = await manager.get_all_users(pymongo_client)
 
     if not settings:
         users.update_many({}, {'$inc': {'credits': 2500}})

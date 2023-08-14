@@ -15,8 +15,9 @@ import proxies
 import provider_auth
 import load_balancing
 
-from db import logs, users
-from db.stats import Stats
+from db import logs
+from db.users import UserManager
+from db.stats import StatsManager
 from helpers import network, chat, errors
 
 load_dotenv()
@@ -76,7 +77,8 @@ async def stream(
         input_tokens (int, optional): Total tokens calculated with tokenizer. Defaults to 0.
         incoming_request (starlette.requests.Request, optional): Incoming request. Defaults to None.
     """
-
+    db = UserManager()
+    stats = StatsManager()
     is_chat = False
     is_stream = payload.get('stream', False)
 
@@ -175,16 +177,16 @@ async def stream(
         await logs.log_api_request(user=user, incoming_request=incoming_request, target_url=target_request['url'])
 
     if credits_cost and user:
-        await users.update_by_id(user['_id'], {'$inc': {'credits': -credits_cost}})
+        await db.update_by_id(user['_id'], {'$inc': {'credits': -credits_cost}})
 
     ip_address = await network.get_ip(incoming_request)
-    await Stats.add_date()
-    await Stats.add_ip_address(ip_address)
-    await Stats.add_path(path)
-    await Stats.add_target(target_request['url'])
+    await stats.add_date()
+    await stats.add_ip_address(ip_address)
+    await stats.add_path(path)
+    await stats.add_target(target_request['url'])
     if is_chat:
-        await Stats.add_model(model)
-        await Stats.add_tokens(input_tokens, model)
+        await stats.add_model(model)
+        await stats.add_tokens(input_tokens, model)
 
 if __name__ == '__main__':
     asyncio.run(stream())

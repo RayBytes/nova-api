@@ -14,5 +14,9 @@
     "hide-files.files": [
         "tests/__pycache__",
         "api/__pycache__"
+    ],
+    "python.analysis.extraPaths": [
+        ".",
+        "./api/db"
     ]
 }

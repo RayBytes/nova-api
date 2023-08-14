@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 import streaming
 import moderation
 
-from db import users
+from users import UserManager
 from helpers import tokens, errors
 
 load_dotenv()
@@ -25,7 +25,7 @@ async def handle(incoming_request):
     Takes the request from the incoming request to the target endpoint.
     Checks method, token amount, auth and cost along with if request is NSFW.
     """
-    
+    users = UserManager()
     path = incoming_request.url.path.replace('v1/v1/', 'v1/')
 
     allowed_methods = {'GET', 'POST', 'PUT', 'DELETE', 'PATCH'}
@@ -46,7 +46,7 @@ async def handle(incoming_request):
     if not received_key or not received_key.startswith('Bearer '):
         return await errors.error(401, 'No NovaAI API key given!', 'Add "Authorization: Bearer nv-..." to your request headers.')
 
-    user = await users.by_api_key(received_key.split('Bearer ')[1].strip())
+    user = await users.user_by_api_key(received_key.split('Bearer ')[1].strip())
 
     if not user or not user['status']['active']:
         return await errors.error(401, 'Invalid or inactive NovaAI API key!', 'Create a new NovaOSS API key or reactivate your account.')

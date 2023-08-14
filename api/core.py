@@ -4,7 +4,7 @@ import os
 import json
 import fastapi
 
-from db import users
+from users import UserManager
 
 from dhooks import Webhook, Embed
 from dotenv import load_dotenv
@@ -29,10 +29,12 @@ async def check_core_auth(request):
 async def get_users(discord_id: int, incoming_request: fastapi.Request):
     auth = await check_core_auth(incoming_request)
     if auth:
-        return auth_error
+        return auth
 
     # Get user by discord ID
-    if not await users.by_discord_id(discord_id):
+    manager = UserManager()
+    user = await manager.user_by_discord_id(discord_id)
+    if not user:
         return fastapi.Response(status_code=404, content='User not found.')
 
     return user
@@ -63,8 +65,10 @@ async def create_user(incoming_request: fastapi.Request):
         discord_id = payload.get('discord_id')
     except (json.decoder.JSONDecodeError, AttributeError):
         return fastapi.Response(status_code=400, content='Invalid or no payload received.')
-
-    user = await users.create(discord_id)
+    
+    # Create the user 
+    manager = UserManager()
+    user = await manager.create(discord_id)
     await new_user_webhook(user)
 
     return user

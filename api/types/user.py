@@ -1,0 +1,1 @@
+## TODO: Create user type out of JSON object.

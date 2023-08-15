@@ -4,7 +4,7 @@ import os
 import json
 import fastapi
 
-from users import UserManager
+from db.users import UserManager
 
 from dhooks import Webhook, Embed
 from dotenv import load_dotenv

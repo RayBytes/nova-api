@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 import streaming
 import moderation
 
-from users import UserManager
+from db.users import UserManager
 from helpers import tokens, errors
 
 load_dotenv()
@@ -34,7 +34,10 @@ async def handle(incoming_request):
     if method not in allowed_methods:
         return await errors.error(405, f'Method "{method}" is not allowed.', 'Change the request method to the correct one.')
 
-    payload = await incoming_request.json()
+    try:
+        payload = await incoming_request.json()
+    except json.decoder.JSONDecodeError:
+        payload = {}
 
     try:
         input_tokens = await tokens.count_for_messages(payload.get('messages', []))

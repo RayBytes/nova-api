@@ -33,7 +33,7 @@ def test_server():
     """Tests if the API server is running."""
 
     try:
-        return httpx.get(f'{api_endpoint}').json()['status'] == 'ok'
+        return httpx.get(f'{api_endpoint.replace("/v1", "")}').json()['status'] == 'ok'
     except httpx.ConnectError as exc:
         raise ConnectionError(f'API is not running on port {api_endpoint}.') from exc
 
@@ -69,7 +69,7 @@ def test_library():
     return completion['choices'][0]['message']['content']
 
 def test_library_moderation():
-    return closedai.Moderation.create("I wanna kill myself, I wanna kill myself; It's all I hear right now, it's all I hear right now")
+    return closedai.Moderation.create('I wanna kill myself, I wanna kill myself; It\'s all I hear right now, it\'s all I hear right now')
 
 def test_models():
     response = httpx.get(
@@ -80,25 +80,7 @@ def test_models():
     response.raise_for_status()
     return response.json()
 
-def test_all():
-    """Runs all tests."""
-
-    print("Running test on API server to check if its running.."
-    print(test_server())
-
-    print("Running a api endpoint to see if requests can go through..."
-    print(test_api())
-
-    print("Checking if the API works with the python library..."
-    print(test_library())
-
-    print("Checking if the moderation endpoint works...")
-    print(test_library_moderation())
-
-    print("Checking if all models can be GET"
-    print(test_models())
-
-def test_api_moderation(model: str=MODEL, messages: List[dict]=None) -> dict:
+def test_api_moderation() -> dict:
     """Tests an API api_endpoint."""
 
     response = httpx.get(
@@ -109,6 +91,26 @@ def test_api_moderation(model: str=MODEL, messages: List[dict]=None) -> dict:
     response.raise_for_status()
 
     return response.text
+
+# ==========================================================================================
+
+def test_all():
+    """Runs all tests."""
+
+    print('Running test on API server to check if its running..')
+    print(test_server())
+
+    print('Running a api endpoint to see if requests can go through...')
+    print(test_api())
+
+    print('Checking if the API works with the python library...')
+    print(test_library())
+
+    print('Checking if the moderation endpoint works...')
+    print(test_library_moderation())
+
+    print('Checking if all models can be GET')
+    print(test_models())
 
 if __name__ == '__main__':
     api_endpoint = 'https://alpha-api.nova-oss.com/v1'

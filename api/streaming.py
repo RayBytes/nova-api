@@ -26,12 +26,12 @@ import yaml
 load_dotenv()
 
 ## Loads config which contains rate limits
-with open('config/config.yml', encoding='utf8') as f:
+with open('config/credits.yml', encoding='utf8') as f:
     config = yaml.safe_load(f)
 
 ## Where all rate limit requested data will be stored.
 # Rate limit data is **not persistent** (It will be deleted on server stop/restart).
-user_last_request_time = {}
+# user_last_request_time = {}
 
 DEMO_PAYLOAD = {
     'model': 'gpt-3.5-turbo',
@@ -93,18 +93,18 @@ async def stream(
     ## Rate limits user.
     # If rate limit is exceeded, error code 429. Otherwise, lets the user pass but notes down
     # last request time for future requests.
-    if user:
-        role = user.get('role', 'default')
-        rate_limit = config['roles'][role]['rate_limit'].get(payload['model'], 10)
+    # if user:
+    #     role = user.get('role', 'default')
+    #     rate_limit = config['roles'][role]['rate_limit'].get(payload['model'], 10)
 
-        last_request_time = user_last_request_time.get(user['api_key'])
-        time_since_last_request = datetime.now() - last_request_time
+    #     last_request_time = user_last_request_time.get(user['api_key'])
+    #     time_since_last_request = datetime.datetime.now() - last_request_time
 
-        if time_since_last_request < datetime.timedelta(seconds=rate_limit):
-            yield await errors.yield_error(429, "Rate limit exceeded', 'You are making requests too quickly. Please wait and try again later. Ask a administrator if you think this shouldn't happen. ")
-            return
-        else:
-            user_last_request_time[user['_id']] = datetime.now()
+    #     if time_since_last_request < datetime.timedelta(seconds=rate_limit):
+    #         yield await errors.yield_error(429, 'Rate limit exceeded', "You are making requests too quickly. Please wait and try again later. Ask a administrator if you think this shouldn't happen.")
+    #         return
+    #     else:
+    #         user_last_request_time[user['_id']] = datetime.datetime.now()
 
     ## Setup managers
     db = UserManager()

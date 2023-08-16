@@ -169,7 +169,10 @@ async def stream(
                     headers=target_request.get('headers', {}),
                     cookies=target_request.get('cookies'),
                     ssl=False,
-                    timeout=aiohttp.ClientTimeout(total=float(os.getenv('TRANSFER_TIMEOUT', '120'))),
+                    timeout=aiohttp.ClientTimeout(
+                        connect=3.0,
+                        total=float(os.getenv('TRANSFER_TIMEOUT', '120'))
+                    ),
                 ) as response:
                     if response.content_type == 'application/json':
                         data = await response.json()

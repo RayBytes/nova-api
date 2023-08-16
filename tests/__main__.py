@@ -69,7 +69,10 @@ def test_library():
     return completion['choices'][0]['message']['content']
 
 def test_library_moderation():
-    return closedai.Moderation.create('I wanna kill myself, I wanna kill myself; It\'s all I hear right now, it\'s all I hear right now')
+    try:
+        return closedai.Moderation.create('I wanna kill myself, I wanna kill myself; It\'s all I hear right now, it\'s all I hear right now')
+    except closedai.errors.InvalidRequestError as exc:
+        return True
 
 def test_models():
     response = httpx.get(

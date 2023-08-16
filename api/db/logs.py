@@ -21,7 +21,7 @@ UA_SIMPLIFY = {
 conn = AsyncIOMotorClient(os.getenv('MONGO_URI'))
 
 async def _get_collection(collection_name: str):
-    return conn['nova-core'][collection_name]
+    return conn[os.getenv('MONGO_NAME', 'nova-test')][collection_name]
 
 async def replacer(text: str, dict_: dict) -> str:
     # This seems to exist for a very specific and dumb purpose :D

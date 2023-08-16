@@ -26,7 +26,7 @@ class StatsManager:
         self.conn = AsyncIOMotorClient(os.getenv('MONGO_URI'))
 
     async def _get_collection(self, collection_name: str):
-        return self.conn['nova-core'][collection_name]
+        return self.conn[os.getenv('MONGO_NAME', 'nova-test')][collection_name]
     
     async def add_date(self):
         date = datetime.datetime.now(pytz.timezone('GMT')).strftime('%Y.%m.%d')

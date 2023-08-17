@@ -62,5 +62,6 @@ class StatsManager:
         return await db.find_one({obj_filter})
 
 if __name__ == '__main__':
-    asyncio.run(Stats.add_date())
-    asyncio.run(Stats.add_path('/__demo/test'))
+    stats = StatsManager()
+    asyncio.run(stats.add_date())
+    asyncio.run(stats.add_path('/__demo/test'))

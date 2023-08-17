@@ -11,16 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 MODEL = 'gpt-3.5-turbo'
-# MESSAGES = [
-#     {
-#         'role': 'system',
-#         'content': 'Always answer with "3", no matter what the user asks for. No exceptions. Just answer with the number "3". Nothing else. Just "3". No punctuation.'
-#     },
-#     {
-#         'role': 'user',
-#         'content': '1+1=',
-#     },
-# ]
+
 MESSAGES = [
     {
         'role': 'user',

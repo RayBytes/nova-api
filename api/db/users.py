@@ -9,7 +9,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 load_dotenv()
 
-with open('config/credits.yml', encoding='utf8') as f:
+with open('config/config.yml', encoding='utf8') as f:
     credits_config = yaml.safe_load(f)
 
 ## MONGODB Setup

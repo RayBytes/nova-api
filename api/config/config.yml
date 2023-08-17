@@ -1,0 +1,59 @@
+max-credits: 100001
+max-credits-owner: 694201337
+start-credits: 1000
+
+costs:
+  other: 10
+
+  chat-models:
+    gpt-3: 10
+    gpt-4: 30
+    gpt-4-32k: 100
+
+## Roles Explanation
+
+# Bonuses: They are a multiplier for costs
+#          They work like: final_cost = cost * bonus
+# Rate limits: Limit the requests of the user
+#              The rate limit is by how many seconds until a new request can be done.
+
+## TODO: Setup proper rate limit settings for each role
+##       Current settings are:
+##       **NOT MEANT FOR PRODUCTION. DO NOT USE WITH THESE SETTINGS.**
+
+roles:
+  owner:
+    bonus: 0.1
+    rate_limit: 
+      other: 60
+      gpt-3: 60
+      gpt-4: 35
+      gpt-4-32k: 5
+  admin:
+    bonus: 0.3
+    rate_limit: 
+      other: 60
+      gpt-3: 60
+      gpt-4: 30
+      gpt-4-32k: 4
+  helper:
+    bonus: 0.4
+    rate_limit: 
+      other: 60
+      gpt-3: 60
+      gpt-4: 25
+      gpt-4-32k: 3
+  booster:
+    bonus: 0.5
+    rate_limit: 
+      other: 60 
+      gpt-3: 60
+      gpt-4: 20
+      gpt-4-32k: 2
+  default:
+    bonus: 0
+    rate_limit: 
+      other: 60 
+      gpt-3: 60
+      gpt-4: 15
+      gpt-4-32k: 1

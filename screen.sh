@@ -1,5 +1,8 @@
 # Script to start the production server
 
+# Commit to the production branch
+git commit -am "Auto-trigger - Production server started" && git push origin Production
+
 # Copy files to production
 cp -r * /home/nova-prod
 

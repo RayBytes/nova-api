@@ -4,6 +4,7 @@ import os
 import openai as closedai
 import httpx
 
+from rich import print
 from typing import List
 from dotenv import load_dotenv
 
@@ -100,19 +101,19 @@ def test_api_moderation() -> dict:
 def test_all():
     """Runs all tests."""
 
-    print('Running test on API server to check if its running..')
+    print('[lightblue]Running test on API server to check if its running...')
     print(test_server())
 
-    print('Running a api endpoint to see if requests can go through...')
+    print('[lightblue]Running a api endpoint to see if requests can go through...')
     print(test_api())
 
-    print('Checking if the API works with the python library...')
+    print('[lightblue]Checking if the API works with the python library...')
     print(test_library())
 
-    print('Checking if the moderation endpoint works...')
+    print('[lightblue]Checking if the moderation endpoint works...')
     print(test_library_moderation())
 
-    print('Checking if all models can be GET')
+    print('[lightblue]Checking the /v1/models endpoint...')
     print(test_models())
 
 if __name__ == '__main__':

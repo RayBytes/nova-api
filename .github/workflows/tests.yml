@@ -20,7 +20,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     
-    - name: Start API server & set ENV
+    - name: Start API server
       env:
         MONGO_URI: ${{ secrets.MONGO_URI }}
         TEST_NOVA_KEY: ${{ secrets.NOVA_KEY }}

@@ -2,16 +2,17 @@
 
 import os
 import json
+import yaml
 import dhooks
 import asyncio
 import aiohttp
 import starlette
-import datetime
 
 from rich import print
 from dotenv import load_dotenv
 from python_socks._errors import ProxyError
 
+import chunks
 import proxies
 import provider_auth
 import load_balancing
@@ -20,8 +21,6 @@ from db import logs
 from db.users import UserManager
 from db.stats import StatsManager
 from helpers import network, chat, errors
-import yaml
-
 
 load_dotenv()
 
@@ -43,33 +42,6 @@ DEMO_PAYLOAD = {
     ]
 }
 
-async def process_response(response, is_chat, chat_id, model, target_request):
-    """Proccesses chunks from streaming
-
-    Args:
-        response (_type_): The response
-        is_chat (bool): If there is 'chat/completions' in path
-        chat_id (_type_): ID of chat with bot
-        model (_type_): What AI model it is
-    """
-    async for chunk in response.content.iter_any():
-        chunk = chunk.decode("utf8").strip()
-        send = False
-
-        if is_chat and '{' in chunk:
-            data = json.loads(chunk.split('data: ')[1])
-            chunk = chunk.replace(data['id'], chat_id)
-            send = True
-
-            if target_request['module'] == 'twa' and data.get('text'):
-                chunk = await chat.create_chat_chunk(chat_id=chat_id, model=model, content=['text'])
-
-            if (not data['choices'][0]['delta']) or data['choices'][0]['delta'] == {'role': 'assistant'}:
-                send = False
-
-        if send and chunk:
-            yield chunk + '\n\n'
-
 async def stream(
     path: str='/v1/chat/completions',
     user: dict=None,
@@ -80,31 +52,7 @@ async def stream(
 ):
     """Stream the completions request. Sends data in chunks
     If not streaming, it sends the result in its entirety.
-
-    Args:
-        path (str, optional): URL Path. Defaults to '/v1/chat/completions'.
-        user (dict, optional): User object (dict) Defaults to None.
-        payload (dict, optional): Payload. Defaults to None.
-        credits_cost (int, optional): Cost of the credits of the request. Defaults to 0.
-        input_tokens (int, optional): Total tokens calculated with tokenizer. Defaults to 0.
-        incoming_request (starlette.requests.Request, optional): Incoming request. Defaults to None.
     """
-
-    ## Rate limits user.
-    # If rate limit is exceeded, error code 429. Otherwise, lets the user pass but notes down
-    # last request time for future requests.
-    if user:
-        role = user.get('role', 'default')
-        rate_limit = config['roles'].get(role, 1)['rate_limit'].get(payload['model'], 1)
-
-        last_request_time = user_last_request_time.get(user['api_key'])
-        time_since_last_request = datetime.now() - last_request_time
-
-        if time_since_last_request < datetime.timedelta(seconds=rate_limit):
-            yield await errors.yield_error(429, "Rate limit exceeded', 'You are making requests too quickly. Please wait and try again later. Ask a administrator if you think this shouldn't happen. ")
-            return
-        else:
-            user_last_request_time[user['_id']] = datetime.now()
 
     ## Setup managers
     db = UserManager()
@@ -127,11 +75,9 @@ async def stream(
     for _ in range(5):
         headers = {'Content-Type': 'application/json'}
 
-
-        # Load balancing
+        # Load balancing: randomly selecting a suitable provider
         # If the request is a chat completion, then we need to load balance between chat providers
         # If the request is an organic request, then we need to load balance between organic providers
-
         try:
             if is_chat:
                 target_request = await load_balancing.balance_chat_request(payload)
@@ -191,7 +137,13 @@ async def stream(
                             if 'Too Many Requests' in str(exc):
                                 continue
 
-                        async for chunk in process_response(response, is_chat, chat_id, model, target_request):
+                        async for chunk in chunks.process_chunks(
+                            chunks=response.content.iter_any(),
+                            is_chat=is_chat,
+                            chat_id=chat_id,
+                            model=model,
+                            target_request=target_request
+                        ):
                             yield chunk
 
                     break

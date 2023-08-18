@@ -8,7 +8,7 @@ async def invalidate_key(provider_and_key: str) -> None:
     Invalidates a key stored in the secret/ folder by storing it in the associated .invalid.txt file.
     The schmea in which <provider_and_key> should be passed is:
     <provider_name><key>, e.g.
-    closed4>sk-...
+    closed4>cd-...
 
     """
 
@@ -29,4 +29,4 @@ async def invalidate_key(provider_and_key: str) -> None:
         f.write(key + '\n')
 
 if __name__ == '__main__':
-    asyncio.run(invalidate_key('closed>sk-...'))
+    asyncio.run(invalidate_key('closed>cd...'))

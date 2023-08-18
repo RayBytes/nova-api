@@ -83,6 +83,10 @@ class UserManager:
         db = await self._get_collection('users')
         return await db.update_one({'_id': user_id}, update)
 
+    async def upate_by_discord_id(self, discord_id: str, update):
+        db = await self._get_collection('users')
+        return await db.update_one({'auth.discord': str(int(discord_id))}, update)
+
     async def update_by_filter(self, obj_filter, update):
         db = await self._get_collection('users')
         return await db.update_one(obj_filter, update)

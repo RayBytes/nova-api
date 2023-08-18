@@ -28,12 +28,6 @@ async def handle(incoming_request):
     users = UserManager()
     path = incoming_request.url.path.replace('v1/v1/', 'v1/')
 
-    allowed_methods = {'GET', 'POST', 'PUT', 'DELETE', 'PATCH'}
-    method = incoming_request.method
-
-    if method not in allowed_methods:
-        return await errors.error(405, f'Method "{method}" is not allowed.', 'Change the request method to the correct one.')
-
     try:
         payload = await incoming_request.json()
     except json.decoder.JSONDecodeError:
@@ -78,7 +72,12 @@ async def handle(incoming_request):
         return await errors.error(400, f'The request contains content which violates this model\'s policies for "{policy_violation}".', 'We currently don\'t support any NSFW models.')
 
     role = user.get('role', 'default')
-    role_cost_multiplier = config['roles'].get(role, 1)['bonus']
+
+    try:
+        role_cost_multiplier = config['roles'][role]['bonus']
+    except KeyError:
+        role_cost_multiplier = 1
+
     cost = round(cost * role_cost_multiplier)
 
     if user['credits'] < cost:

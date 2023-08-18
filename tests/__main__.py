@@ -63,7 +63,7 @@ def test_library():
 def test_library_moderation():
     try:
         return closedai.Moderation.create('I wanna kill myself, I wanna kill myself; It\'s all I hear right now, it\'s all I hear right now')
-    except closedai.errors.InvalidRequestError as exc:
+    except closedai.error.InvalidRequestError:
         return True
 
 def test_models():
@@ -108,7 +108,6 @@ def test_all():
     print(test_models())
 
 if __name__ == '__main__':
-    api_endpoint = 'https://alpha-api.nova-oss.com/v1'
     closedai.api_base = api_endpoint
     closedai.api_key = os.getenv('TEST_NOVA_KEY')
 

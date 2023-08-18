@@ -71,3 +71,23 @@ async def create_user(incoming_request: fastapi.Request):
     await new_user_webhook(user)
 
     return user
+
+@router.put('/users')
+async def update_user(incoming_request: fastapi.Request):
+    auth_error = await check_core_auth(incoming_request)
+
+    if auth_error:
+        return auth_error
+
+    try:
+        payload = await incoming_request.json()
+        discord_id = payload.get('discord_id')
+        updates = payload.get('updates')
+    except (json.decoder.JSONDecodeError, AttributeError):
+        return fastapi.Response(status_code=400, content='Invalid or no payload received.')
+    
+    # Update the user 
+    manager = UserManager()
+    user = await manager.update_by_discord_id(discord_id, updates)
+
+    return user

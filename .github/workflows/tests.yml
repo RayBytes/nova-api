@@ -23,7 +23,7 @@ jobs:
     - name: Start API server
       env:
         MONGO_URI: ${{ secrets.MONGO_URI }}
-        NOVA_KEY: ${{ secrets.NOVA_KEY }}
+        NOVA_KEY: letstrythis
       run: |
         python run
         

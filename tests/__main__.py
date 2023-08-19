@@ -109,7 +109,7 @@ def test_all():
 
 if __name__ == '__main__':
     closedai.api_base = api_endpoint
-    closedai.api_key = os.getenv('TEST_NOVA_KEY')
+    closedai.api_key = os.environ['NOVA_KEY']
 
     HEADERS = {
         'Content-Type': 'application/json',

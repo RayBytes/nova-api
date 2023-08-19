@@ -23,7 +23,7 @@ jobs:
     - name: Start API server
       env:
         MONGO_URI: ${{ secrets.MONGO_URI }}
-        TEST_NOVA_KEY: ${{ secrets.NOVA_KEY }}
+        NOVA_KEY: ${{ secrets.NOVA_KEY }}
       run: |
         python run
         

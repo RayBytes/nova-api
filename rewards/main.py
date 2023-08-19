@@ -11,8 +11,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 async def main():
-    mongo = pymongo.MongoClient(os.getenv('MONGO_URI'))
-
     await update_roles()
     await autocredits.update_credits(roles)
 
@@ -52,7 +50,7 @@ async def update_roles():
 def launch():
     asyncio.run(main())
 
-    with open('rewards/last_update.txt', 'w') as f:
+    with open('rewards/last_update.txt', 'w', encoding='utf8') as f:
         f.write(str(time.time()))
 
 if __name__ == '__main__':

@@ -7,9 +7,14 @@ import asyncio
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 
+try:
+    from . import helpers
+except ImportError:
+    import helpers
+
 load_dotenv()
 
-with open('config/config.yml', encoding='utf8') as f:
+with open(helpers.root + '/api/config/config.yml', encoding='utf8') as f:
     credits_config = yaml.safe_load(f)
 
 ## MONGODB Setup
@@ -36,7 +41,8 @@ class UserManager:
         return self.conn[os.getenv('MONGO_NAME', 'nova-test')][collection_name]
     
     async def get_all_users(self):
-        return self.conn[os.getenv('MONGO_NAME', 'nova-test')]['users']
+        collection = self.conn[os.getenv('MONGO_NAME', 'nova-test')]['users']
+        return collection#.find()
 
     async def create(self, discord_id: str = '') -> dict:
         chars = string.ascii_letters + string.digits

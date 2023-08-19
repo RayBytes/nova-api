@@ -9,13 +9,14 @@ from settings import roles
 from dotenv import load_dotenv
 
 load_dotenv()
+
 async def main():
     mongo = pymongo.MongoClient(os.getenv('MONGO_URI'))
 
-    await update_roles(mongo)
-    await autocredits.update_credits(mongo, roles)
+    await update_roles()
+    await autocredits.update_credits(roles)
 
-async def update_roles(mongo):
+async def update_roles():
     async with aiohttp.ClientSession() as session:
         try:
             async with session.get('http://0.0.0.0:3224/get_roles') as response:
@@ -25,9 +26,15 @@ async def update_roles(mongo):
             return
 
     level_role_names = [f'lvl{lvl}' for lvl in range(10, 110, 10)]
-    users = await autocredits.get_all_users(mongo)
+    users = await autocredits.get_all_users()
+    users = users.find({})
+    users = await users.to_list(length=None)
 
-    for user in users.find():
+
+    for user in users:
+        if not 'auth' in user:
+            continue
+
         discord = str(user['auth']['discord'])
 
         for user_id, role_names in discord_users.items():
@@ -47,7 +54,6 @@ def launch():
 
     with open('rewards/last_update.txt', 'w') as f:
         f.write(str(time.time()))
-
 
 if __name__ == '__main__':
     launch()

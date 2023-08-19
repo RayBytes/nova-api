@@ -24,8 +24,8 @@ async def update_roles():
             return
 
     level_role_names = [f'lvl{lvl}' for lvl in range(10, 110, 10)]
-    users = await autocredits.get_all_users()
-    users = users.find({})
+    users_doc = await autocredits.get_all_users()
+    users = users_doc.find({})
     users = await users.to_list(length=None)
 
 
@@ -39,10 +39,11 @@ async def update_roles():
             if user_id == discord:
                 for role in level_role_names:
                     if role in role_names:
-                        users.update_one(
+                        users_doc.update_one(
                             {'auth.discord': discord},
                             {'$set': {'level': role}}
                         )
+
                         print(f'Updated {discord} to {role}')
 
     return users

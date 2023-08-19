@@ -35,7 +35,7 @@ class UserManager:
     """
 
     def __init__(self):
-        self.conn = AsyncIOMotorClient(os.getenv('MONGO_URI'))
+        self.conn = AsyncIOMotorClient(os.environ['MONGO_URI'])
 
     async def _get_collection(self, collection_name: str):
         return self.conn[os.getenv('MONGO_NAME', 'nova-test')][collection_name]

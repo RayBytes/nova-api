@@ -26,9 +26,6 @@ jobs:
     - name: Start API server
       run: |
         python run
-        
-    - name: Wait for API server to start
-      run: sleep 10  # We can adjust this sleep duration as needed. idk how long the server takes to start
       
     - name: Run tests
       run: python tests

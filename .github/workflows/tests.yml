@@ -5,7 +5,10 @@ on: [pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+    env:
+      MONGO_URI: ${{ secrets.MONGO_URI }}
+      NOVA_KEY: ${{ secrets.NOVA_KEY }}
+      
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -21,9 +24,6 @@ jobs:
         pip install -r requirements.txt
     
     - name: Start API server
-      env:
-        MONGO_URI: ${{ secrets.MONGO_URI }}
-        NOVA_KEY: letstrythis
       run: |
         python run
         

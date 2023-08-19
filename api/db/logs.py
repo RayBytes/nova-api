@@ -18,7 +18,7 @@ UA_SIMPLIFY = {
 
 ## MONGODB Setup
 
-conn = AsyncIOMotorClient(os.getenv('MONGO_URI'))
+conn = AsyncIOMotorClient(os.environ['MONGO_URI'])
 
 async def _get_collection(collection_name: str):
     return conn[os.getenv('MONGO_NAME', 'nova-test')][collection_name]

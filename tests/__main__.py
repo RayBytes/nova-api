@@ -111,7 +111,8 @@ def test_all():
         print('[lightblue]Checking the /v1/models endpoint...')
         print(test_models())
     except Exception as e:
-        print('[red]Error: ' + e)
+        print('[red]Error: ')
+        print(e)
         exit(500)
 
 if __name__ == '__main__':

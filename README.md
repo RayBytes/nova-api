@@ -1,5 +1,5 @@
-# ☄️ NovaOSS API Server
-Reverse proxy server for "Closed"AI's API.
+# ☄️ NovaAI - Core API Server
+API server for accessing AI models.
 
 ![Badge showing the most used language](https://img.shields.io/github/languages/top/novaoss/nova-api)
 ![Badge showing the code size](https://img.shields.io/github/languages/code-size/novaoss/nova-api)
@@ -14,11 +14,7 @@ Reverse proxy server for "Closed"AI's API.
 
 ![Nova-API Conver/Banner Image - a picture of a galaxy with the caption "the core API server"](https://i.ibb.co/ZBhkS56/nova-api.png)
 
-> "*OpenAI is very closed*"
-> 
-> — [ArsTechnica (July 2023)](https://arstechnica.com/information-technology/2023/07/is-chatgpt-getting-worse-over-time-study-claims-yes-but-others-arent-sure/)
-
-We aim to fix that!
+We aim to fix that! NovaAI provides several AI models for you to use for free.
 
 ## Star History
 

@@ -94,13 +94,13 @@ def test_all():
     """Runs all tests."""
 
     print("Waiting until API Server is started up...")
-    time.sleep(5)
+    time.sleep(6)
 
     print('[lightblue]Running test on API server to check if its running...')
     print(test_server())
 
     print('[lightblue]Running a api endpoint to see if requests can go through...')
-    print(test_api())
+    print(test_api('gpt-3.5-trubo'))
 
     print('[lightblue]Checking if the API works with the python library...')
     print(test_library())
@@ -114,6 +114,10 @@ def test_all():
 if __name__ == '__main__':
     closedai.api_base = api_endpoint
     closedai.api_key = os.environ['NOVA_KEY']
+    if os.environ['NOVA_KEY']:
+        print('key exists!')
+    else:
+        print('idk man i dont see nuthin')
 
     HEADERS = {
         'Content-Type': 'application/json',

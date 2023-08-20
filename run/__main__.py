@@ -23,12 +23,4 @@ if 'prod' in sys.argv:
     port = 2333
     dev = False
 
-os.system(f'cd api && uvicorn main:app{" --reload" if dev else ""} --host 0.0.0.0 --port {port}')
-
-time.sleep(2)
-
-import tests.__main__ as tests
-tests.test_all()
-
-
-
+os.system(f'cd api && uvicorn main:app{" --reload" if dev else ""} --host 0.0.0.0 --port {port} & python tests')

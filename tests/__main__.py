@@ -3,6 +3,7 @@
 import os
 import openai as closedai
 import httpx
+import time
 
 from rich import print
 from typing import List
@@ -91,6 +92,9 @@ def test_api_moderation() -> dict:
 
 def test_all():
     """Runs all tests."""
+
+    print("Waiting until API Server is started up...")
+    time.sleep(5)
 
     print('[lightblue]Running test on API server to check if its running...')
     print(test_server())

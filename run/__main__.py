@@ -27,7 +27,8 @@ os.system(f'cd api && uvicorn main:app{" --reload" if dev else ""} --host 0.0.0.
 
 time.sleep(2)
 
-os.system('python tests')
+import tests.__main__ as tests
+tests.test_all()
 
 
 

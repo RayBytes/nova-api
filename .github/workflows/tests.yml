@@ -6,7 +6,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      MONGO_URI: justtotes
+      MONGO_URI:  ${{ secrets.MONGO_URI }}
       NOVA_KEY: ${{ secrets.NOVA_KEY }}
       
     steps:

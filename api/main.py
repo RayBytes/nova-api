@@ -26,7 +26,7 @@ app.include_router(core.router)
 async def startup_event():
     # DATABASE FIX https://stackoverflow.com/questions/65970988/python-mongodb-motor-objectid-object-is-not-iterable-error-while-trying-to-f
     import pydantic, bson
-    pydantic.json.ENCODERS_BY_TYPE[bson.objectid.ObjectId]=str
+    # pydantic.json.ENCODERS_BY_TYPE[bson.objectid.ObjectId]=str
 
 @app.get('/')
 async def root():

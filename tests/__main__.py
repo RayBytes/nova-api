@@ -92,24 +92,27 @@ def test_api_moderation() -> dict:
 
 def test_all():
     """Runs all tests."""
+    try:
+        print("Waiting until API Server is started up...")
+        time.sleep(6)
 
-    print("Waiting until API Server is started up...")
-    time.sleep(6)
+        print('[lightblue]Running test on API server to check if its running...')
+        print(test_server())
 
-    print('[lightblue]Running test on API server to check if its running...')
-    print(test_server())
+        print('[lightblue]Running a api endpoint to see if requests can go through...')
+        print(test_api('gpt-3.5-trubo'))
 
-    print('[lightblue]Running a api endpoint to see if requests can go through...')
-    print(test_api('gpt-3.5-trubo'))
+        print('[lightblue]Checking if the API works with the python library...')
+        print(test_library())
 
-    print('[lightblue]Checking if the API works with the python library...')
-    print(test_library())
+        print('[lightblue]Checking if the moderation endpoint works...')
+        print(test_library_moderation())
 
-    print('[lightblue]Checking if the moderation endpoint works...')
-    print(test_library_moderation())
-
-    print('[lightblue]Checking the /v1/models endpoint...')
-    print(test_models())
+        print('[lightblue]Checking the /v1/models endpoint...')
+        print(test_models())
+    except Exception as e:
+        print('[red]Error: ' + e)
+        exit(500)
 
 if __name__ == '__main__':
     closedai.api_base = api_endpoint

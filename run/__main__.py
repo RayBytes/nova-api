@@ -14,6 +14,7 @@ Runs for production on the speicified port.
 
 import os
 import sys
+import time
 
 port = sys.argv[1] if len(sys.argv) > 1 else 2332
 dev = True
@@ -23,3 +24,10 @@ if 'prod' in sys.argv:
     dev = False
 
 os.system(f'cd api && uvicorn main:app{" --reload" if dev else ""} --host 0.0.0.0 --port {port}')
+
+time.sleep(2)
+
+os.system('python tests')
+
+
+

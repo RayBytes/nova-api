@@ -114,10 +114,6 @@ def test_all():
 if __name__ == '__main__':
     closedai.api_base = api_endpoint
     closedai.api_key = os.environ['NOVA_KEY']
-    if os.environ['NOVA_KEY']:
-        print('key exists!')
-    else:
-        print('idk man i dont see nuthin')
 
     HEADERS = {
         'Content-Type': 'application/json',

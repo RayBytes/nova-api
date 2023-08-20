@@ -28,6 +28,9 @@ async def handle(incoming_request):
     users = UserManager()
     path = incoming_request.url.path.replace('v1/v1/', 'v1/')
 
+    if '/models' in path:
+        return fastapi.responses.JSONResponse(content=models_list)
+
     try:
         payload = await incoming_request.json()
     except json.decoder.JSONDecodeError:
@@ -51,10 +54,6 @@ async def handle(incoming_request):
     ban_reason = user['status']['ban_reason']
     if ban_reason:
         return await errors.error(403, f'Your NovaAI account has been banned. Reason: "{ban_reason}".', 'Contact the staff for an appeal.')
-
-    path_contains_models = '/models' in path
-    if path_contains_models:
-        return fastapi.responses.JSONResponse(content=models_list)
 
     costs = config['costs']
     cost = costs['other']

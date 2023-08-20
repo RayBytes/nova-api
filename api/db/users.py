@@ -47,7 +47,7 @@ class UserManager:
     async def create(self, discord_id: str = '') -> dict:
         chars = string.ascii_letters + string.digits
 
-        infix = os.getenv('KEYGEN_INFIX')
+        infix = os.getenv('KEYGEN_INFIX', 'S3LFH0ST')
         suffix = ''.join(random.choices(chars, k=20))
         prefix = ''.join(random.choices(chars, k=20))
 
